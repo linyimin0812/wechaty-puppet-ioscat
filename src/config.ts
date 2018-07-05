@@ -10,6 +10,9 @@ export function qrCodeForChatie (): FileBox {
   return FileBox.fromStream(qrStream, name)
 }
 
+export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D';
+export const customID = 'dancewuli'
+
 import {
   // Brolog,
   log,
@@ -18,4 +21,12 @@ import {
 // export const log = new Brolog()
 export {
   log,
+}
+
+export function ioscatToken(): string {
+  if (process.env.WECHATY_PUPPET_IOSCAT_TOKEN) {
+    return process.env.WECHATY_PUPPET_IOSCAT_TOKEN
+  }
+
+  throw new Error('Wechaty Puppet Ioscat needs a token, please set it in environment variable WECHATY_PUPPET_IOSCAT_TOKEN')
 }

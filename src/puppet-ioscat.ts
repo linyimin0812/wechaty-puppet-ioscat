@@ -18,6 +18,8 @@
  */
 import path  from 'path'
 
+import LRU      from 'lru-cache'
+
 import {
   FileBox,
 }             from 'file-box'
@@ -46,6 +48,13 @@ import {
   qrCodeForChatie,
 }                   from './config'
 
+
+import {default as IMSink} from './im-sink'
+
+import {UUID, ioscatToken, customID} from './config'
+const uuidv1 = require('uuid/v1') 
+
+import {PBIMSendMessageReq, ApiApi} from './api'
 export interface MockContactRawPayload {
   name : string,
 }
@@ -63,21 +72,38 @@ export interface MockRoomRawPayload {
   ownerId    : string,
 }
 
-export class PuppetMock extends Puppet {
+export class PuppetIoscat extends Puppet {
 
   private loopTimer?: NodeJS.Timer
+  private readonly cacheIoscatMessagePayload: LRU.Cache<string, any>
 
   constructor (
     public options: PuppetOptions = {},
   ) {
     super(options)
+
+    const lruOptions: LRU.Options = {
+      max: 10000,
+      // length: function (n) { return n * 2},
+      dispose (key: string, val: any) {
+        log.silly('PuppetPadchat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+      },
+      maxAge: 1000 * 60 * 60,
+    }
+
+    this.cacheIoscatMessagePayload = new LRU<string, any>(lruOptions)
+
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetMock', `start()`)
+    log.verbose('PuppetIoscat', `start()`)
 
     this.state.on('pending')
     // await some tasks...
+    this.initEventHook()
+    let topic = `im.topic.13.${this.options.token || ioscatToken()}`
+    IMSink.start(topic)
+
     this.state.on(true)
 
     this.id = 'logined_user_id'
@@ -95,17 +121,37 @@ export class PuppetMock extends Puppet {
     })
 
     this.loopTimer = setInterval(() => {
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
+      log.verbose('PuppetIoscat', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
       this.emit('message', MOCK_MSG_ID)
     }, 3000)
 
   }
 
+  private initEventHook () {
+    IMSink.event.on('MESSAGE', async msg => {
+      msg['id'] = uuidv1()
+      this.cacheIoscatMessagePayload.set(msg.id, msg)
+      if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
+        this.emit('message', msg.id)
+        return
+      }
+      // 掉线信息
+      if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT' && msg.payload.toUpperCase() === UUID) {
+        this.emit('error', msg.id)
+        return
+      }
+      // 添加好友信息
+      if (msg.type === 'ON_IM_RELATION_APPLY') {
+        this.emit('friendship', msg.id)
+        return
+      }
+    })
+  }
   public async stop (): Promise<void> {
-    log.verbose('PuppetMock', 'quit()')
+    log.verbose('PuppetIoscat', 'quit()')
 
     if (this.state.off()) {
-      log.warn('PuppetMock', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetIoscat', 'quit() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
@@ -117,11 +163,19 @@ export class PuppetMock extends Puppet {
     }
 
     // await some tasks...
+    // 关闭监听消息事件
+    IMSink.getConn().then((CONN: any) => {
+      CONN.close()
+      console.log('Amqp链接关闭')
+    }).catch(err => {
+      console.log(err)
+    });
+    
     this.state.off(true)
   }
 
   public async logout (): Promise<void> {
-    log.verbose('PuppetMock', 'logout()')
+    log.verbose('PuppetIoscat', 'logout()')
 
     if (!this.id) {
       throw new Error('logout before login?')
@@ -142,7 +196,7 @@ export class PuppetMock extends Puppet {
   public contactAlias (contactId: string, alias: string | null): Promise<void>
 
   public async contactAlias (contactId: string, alias?: string | null): Promise<void | string> {
-    log.verbose('PuppetMock', 'contactAlias(%s, %s)', contactId, alias)
+    log.verbose('PuppetIoscat', 'contactAlias(%s, %s)', contactId, alias)
 
     if (typeof alias === 'undefined') {
       return 'mock alias'
@@ -151,7 +205,7 @@ export class PuppetMock extends Puppet {
   }
 
   public async contactList (): Promise<string[]> {
-    log.verbose('PuppetMock', 'contactList()')
+    log.verbose('PuppetIoscat', 'contactList()')
 
     return []
   }
@@ -169,7 +223,7 @@ export class PuppetMock extends Puppet {
   public async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
   public async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
-    log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
+    log.verbose('PuppetIoscat', 'contactAvatar(%s)', contactId)
 
     /**
      * 1. set
@@ -186,7 +240,7 @@ export class PuppetMock extends Puppet {
   }
 
   public async contactRawPayload (id: string): Promise<MockContactRawPayload> {
-    log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
+    log.verbose('PuppetIoscat', 'contactRawPayload(%s)', id)
     const rawPayload: MockContactRawPayload = {
       name : 'mock name',
     }
@@ -194,7 +248,7 @@ export class PuppetMock extends Puppet {
   }
 
   public async contactRawPayloadParser (rawPayload: MockContactRawPayload): Promise<ContactPayload> {
-    log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetIoscat', 'contactRawPayloadParser(%s)', rawPayload)
 
     const payload: ContactPayload = {
       avatar : 'mock-avatar-data',
@@ -219,23 +273,18 @@ export class PuppetMock extends Puppet {
   }
 
   public async messageRawPayload (id: string): Promise<MockMessageRawPayload> {
-    log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
-    const rawPayload: MockMessageRawPayload = {
-      from : 'from_id',
-      id   : 'id',
-      text : 'mock message text',
-      to   : 'to_id',
-    }
+    log.verbose('PuppetIoscat', 'messageRawPayload(%s)', id)
+    const rawPayload = this.cacheIoscatMessagePayload.get(id)
     return rawPayload
   }
 
   public async messageRawPayloadParser (rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
-    log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
+    log.verbose('PuppetIoscat', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
       fromId    : 'xxx',
       id        : rawPayload.id,
       text      : 'mock message text',
-      timestamp : Date.now(),
+      timestamp : Date.now(), // unix timestamp (seconds)
       toId      : this.selfId(),
       type      : MessageType.Text,
     }
@@ -246,21 +295,37 @@ export class PuppetMock extends Puppet {
     receiver : Receiver,
     text     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend(%s, %s)', receiver, text)
+    log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, text)
+    let api:ApiApi = new ApiApi()
+    let data: PBIMSendMessageReq = new PBIMSendMessageReq()
+    data.serviceID = 13
+    data.fromCustomID = this.options.token || ioscatToken() // WECHATY_PUPPET_IOSCAT_TOKEN
+    data.sessionType = 1
+    data.content =text
+    // 私聊
+    if(receiver.contactId){
+      data.toCustomID = receiver.contactId
+    }else if(receiver.contactId){
+      data.toCustomID = receiver.contactId
+    }else{
+      throw new Error('接收人名称不能为空')
+    }
+    api.imApiSendMessagePost(data)
+
   }
 
   public async messageSendFile (
     receiver : Receiver,
     file     : FileBox,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend(%s, %s)', receiver, file)
+    log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, file)
   }
 
   public async messageSendContact (
     receiver  : Receiver,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+    log.verbose('PuppetIoscat', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
     return
   }
 
@@ -268,7 +333,7 @@ export class PuppetMock extends Puppet {
     receiver  : Receiver,
     messageId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'messageForward(%s, %s)',
+    log.verbose('PuppetIoscat', 'messageForward(%s, %s)',
                               receiver,
                               messageId,
               )
@@ -282,7 +347,7 @@ export class PuppetMock extends Puppet {
   public async roomRawPayload (
     id: string,
   ): Promise<MockRoomRawPayload> {
-    log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
+    log.verbose('PuppetIoscat', 'roomRawPayload(%s)', id)
 
     const rawPayload: MockRoomRawPayload = {
       memberList: [],
@@ -295,7 +360,7 @@ export class PuppetMock extends Puppet {
   public async roomRawPayloadParser (
     rawPayload: MockRoomRawPayload,
   ): Promise<RoomPayload> {
-    log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetIoscat', 'roomRawPayloadParser(%s)', rawPayload)
 
     const payload: RoomPayload = {
       id           : 'id',
@@ -307,7 +372,7 @@ export class PuppetMock extends Puppet {
   }
 
   public async roomList (): Promise<string[]> {
-    log.verbose('PuppetMock', 'roomList()')
+    log.verbose('PuppetIoscat', 'roomList()')
 
     return []
   }
@@ -316,18 +381,18 @@ export class PuppetMock extends Puppet {
     roomId    : string,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'roomDel(%s, %s)', roomId, contactId)
+    log.verbose('PuppetIoscat', 'roomDel(%s, %s)', roomId, contactId)
   }
 
   public async roomAvatar (roomId: string): Promise<FileBox> {
-    log.verbose('PuppetMock', 'roomAvatar(%s)', roomId)
+    log.verbose('PuppetIoscat', 'roomAvatar(%s)', roomId)
 
     const payload = await this.roomPayload(roomId)
 
     if (payload.avatar) {
       return FileBox.fromUrl(payload.avatar)
     }
-    log.warn('PuppetMock', 'roomAvatar() avatar not found, use the chatie default.')
+    log.warn('PuppetIoscat', 'roomAvatar() avatar not found, use the chatie default.')
     return qrCodeForChatie()
   }
 
@@ -335,7 +400,7 @@ export class PuppetMock extends Puppet {
     roomId    : string,
     contactId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'roomAdd(%s, %s)', roomId, contactId)
+    log.verbose('PuppetIoscat', 'roomAdd(%s, %s)', roomId, contactId)
   }
 
   public async roomTopic (roomId: string)                : Promise<string>
@@ -345,7 +410,7 @@ export class PuppetMock extends Puppet {
     roomId: string,
     topic?: string,
   ): Promise<void | string> {
-    log.verbose('PuppetMock', 'roomTopic(%s, %s)', roomId, topic)
+    log.verbose('PuppetIoscat', 'roomTopic(%s, %s)', roomId, topic)
 
     if (typeof topic === 'undefined') {
       return 'mock room topic'
@@ -357,13 +422,13 @@ export class PuppetMock extends Puppet {
     contactIdList : string[],
     topic         : string,
   ): Promise<string> {
-    log.verbose('PuppetMock', 'roomCreate(%s, %s)', contactIdList, topic)
+    log.verbose('PuppetIoscat', 'roomCreate(%s, %s)', contactIdList, topic)
 
     return 'mock_room_id'
   }
 
   public async roomQuit (roomId: string): Promise<void> {
-    log.verbose('PuppetMock', 'roomQuit(%s)', roomId)
+    log.verbose('PuppetIoscat', 'roomQuit(%s)', roomId)
   }
 
   public async roomQrcode (roomId: string): Promise<string> {
@@ -371,17 +436,17 @@ export class PuppetMock extends Puppet {
   }
 
   public async roomMemberList (roomId: string) : Promise<string[]> {
-    log.verbose('PuppetMock', 'roommemberList(%s)', roomId)
+    log.verbose('PuppetIoscat', 'roommemberList(%s)', roomId)
     return []
   }
 
   public async roomMemberRawPayload (roomId: string, contactId: string): Promise<any>  {
-    log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    log.verbose('PuppetIoscat', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
     return {}
   }
 
   public async roomMemberRawPayloadParser (rawPayload: any): Promise<RoomMemberPayload>  {
-    log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetIoscat', 'roomMemberRawPayloadParser(%s)', rawPayload)
     return {
       avatar    : 'mock-avatar-data',
       id        : 'xx',
@@ -416,21 +481,21 @@ export class PuppetMock extends Puppet {
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendshipAdd(%s, %s)', contactId, hello)
+    log.verbose('PuppetIoscat', 'friendshipAdd(%s, %s)', contactId, hello)
   }
 
   public async friendshipAccept (
     friendshipId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendshipAccept(%s)', friendshipId)
+    log.verbose('PuppetIoscat', 'friendshipAccept(%s)', friendshipId)
   }
 
   public ding (data?: string): void {
-    log.silly('PuppetMock', 'ding(%s)', data || '')
+    log.silly('PuppetIoscat', 'ding(%s)', data || '')
     this.emit('dong', data)
     return
   }
 
 }
 
-export default PuppetMock
+export default PuppetIoscat

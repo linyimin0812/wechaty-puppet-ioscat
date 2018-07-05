@@ -59,11 +59,26 @@ export interface MockContactRawPayload {
   name : string,
 }
 
-export interface MockMessageRawPayload {
-  id   : string,
-  from : string,
-  to   : string,
-  text : string
+export interface IoscatMessageRawPayload {
+  id                    : string,
+  payload               : {
+    profilePlatformUid  : string,
+    profileCustomID     : string,
+    platformUid         : string,
+    customID            : string,
+    direction           : number,
+    messageType         : number,
+    sessionType         : number,
+    platformMsgType     : number,
+    content             : string,
+    revoke              : number,
+    sendTime            : number,
+    snapshot            : string,
+    serviceID           : number,
+    platformMsgID       : string,
+    deviceID            : string 
+  },
+  type                  : string,
 }
 
 export interface MockRoomRawPayload {
@@ -75,7 +90,7 @@ export interface MockRoomRawPayload {
 export class PuppetIoscat extends Puppet {
 
   private loopTimer?: NodeJS.Timer
-  private readonly cacheIoscatMessagePayload: LRU.Cache<string, any>
+  private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
 
   constructor (
     public options: PuppetOptions = {},
@@ -272,25 +287,65 @@ export class PuppetIoscat extends Puppet {
     )
   }
 
-  public async messageRawPayload (id: string): Promise<MockMessageRawPayload> {
+  public async messageRawPayload (id: string): Promise<IoscatMessageRawPayload> {
     log.verbose('PuppetIoscat', 'messageRawPayload(%s)', id)
     const rawPayload = this.cacheIoscatMessagePayload.get(id)
     return rawPayload
   }
 
-  public async messageRawPayloadParser (rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
+  public async messageRawPayloadParser (rawPayload: IoscatMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetIoscat', 'messagePayload(%s)', rawPayload)
+    let fromId  = rawPayload.payload.direction === 1 ? rawPayload.payload.profileCustomID : rawPayload.payload.customID
+    let toId    = rawPayload.payload.direction === 1 ? rawPayload.payload.customID : rawPayload.payload.profileCustomID
     const payload: MessagePayload = {
-      fromId    : 'xxx',
+      fromId    : fromId,
       id        : rawPayload.id,
-      text      : 'mock message text',
-      timestamp : Date.now(), // unix timestamp (seconds)
-      toId      : this.selfId(),
-      type      : MessageType.Text,
+      text      : rawPayload.payload.content,
+      timestamp : rawPayload.payload.sendTime, // unix timestamp (seconds)
+      toId      : toId,
+      type      : this.messageType(rawPayload.payload.messageType),
     }
     return payload
   }
 
+  /**
+   * 原始payload中的messageType的值
+   * @param messageType 
+   * 
+   * type	integer
+      消息类型
+      文本, 1
+      语音, 2
+      图片, 3
+      视频, 4
+      名片, 5
+      链接, 6
+      红包, 7
+      转账, 8
+      地址, 11
+      好友请求, 12
+      动画, 13
+      语音聊天, 14
+      视频聊天, 15
+      模板消息, 18
+      通知, 10000
+   */
+  public messageType(messageType: number): MessageType{
+    switch(messageType){
+      case 1:
+        return MessageType.Text
+      case 2:
+        return MessageType.Audio
+      case 3:
+        return MessageType.Image
+      case 4:
+        return MessageType.Video
+      case 5:
+        return MessageType.Contact
+      default:
+        return MessageType.Unknown 
+    }
+  }
   public async messageSendText (
     receiver : Receiver,
     text     : string,

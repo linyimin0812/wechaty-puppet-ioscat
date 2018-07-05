@@ -4,15 +4,15 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/lym152898/wechaty-puppet-ioscat.svg?branch=master)](https://travis-ci.com/lym152898/wechaty-puppet-ioscat)
 
-![chatie puppet](https://chatie.io/wechaty-puppet-ioscat/images/ioscat.png)
+![wechaty puppet ioscat](https://lym152898.github.io/wechaty-puppet-ioscat/images/ioscat.png)
 
 ## USAGE
 
 ```ts
-import { MemoryCard } from 'memory-card'
 import { PuppetIoscat } from 'wechaty-puppet-ioscat'
+import { Wechaty }      from 'wechaty'
 
-const puppet  = new PuppetIoscat({ memory: new MemoryCard() })
+const puppet  = new PuppetIoscat()
 const wechaty = new Wechaty({ puppet })
 ```
 

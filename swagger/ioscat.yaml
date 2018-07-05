@@ -1,0 +1,5006 @@
+swagger: '2.0'
+info:
+  title: xservices API
+  description: api接口
+  version: 1.0.0
+host: '39.108.78.208:5111'
+schemes:
+  - http
+basePath: /
+produces:
+  - application/json
+paths:
+  /im/api/config:
+    get:
+      summary: 运营号移动端获取配置信息，permissionConfig、groupConfig
+      description: 运营号移动端获取配置信息，permissionConfig、groupConfig
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 运营号ID
+      tags:
+        - api
+      responses:
+        '200':
+          description: 配置json
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/api/groupMemberLoadStatus:
+    get:
+      summary: 运营号移动端获取群成员上报状态
+      description: 运营号移动端获取群成员上报状态
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+      tags:
+        - api
+      responses:
+        '200':
+          description: 群成员ID列表
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/api/contactMD5s:
+    get:
+      summary: 联系人摘要
+      description: 联系人摘要
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 平台Uid
+      tags:
+        - api
+      responses:
+        '200':
+          description: 联系人id列表
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/api/contacted:
+    get:
+      summary: 是否能添加好友
+      description: 是否能添加好友
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 平台Uid
+      tags:
+        - api
+      responses:
+        '200':
+          description: result
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  result:
+                    type: integer
+                  desc:
+                    type: string
+  /im/api/groupQRCodeDate:
+    get:
+      summary: 群二维码生成时间
+      description: 群二维码生成时间
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGids
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+          description: 群id列表
+      tags:
+        - api
+      responses:
+        '200':
+          description: result
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/api/sendTimeline:
+    post:
+      summary: 发送timeline命令
+      description: 发送timeline命令
+      parameters:
+        - name: PBIMSendTimelineReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSendTimelineReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/sendMessage:
+    post:
+      summary: 发送消息命令
+      description: 发送消息命令
+      parameters:
+        - name: PBIMSendMessageReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSendMessageReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/sendBatchMessage:
+    post:
+      summary: 多对象批量发送消息命令
+      description: 多对象批量发送消息命令
+      parameters:
+        - name: PBIMSendBatchMessageReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSendBatchMessageReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/sendTemplateMessage:
+    post:
+      summary: 发送模板消息命令
+      description: 发送模板消息命令
+      parameters:
+        - name: PBIMSendTemplateMessageReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSendTemplateMessageReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/createGroup:
+    post:
+      summary: 创建群命令
+      description: 创建群命令
+      parameters:
+        - name: PBIMCreateGroupReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMCreateGroupReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回运营号数据
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/setGroupName:
+    post:
+      summary: 设置群名称
+      description: 设置群名称
+      parameters:
+        - name: PBIMSetGroupNameReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSetGroupNameReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/setGroupDesc:
+    post:
+      summary: 设置群备注
+      description: 设置群备注
+      parameters:
+        - name: PBIMSetGroupDescReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSetGroupDescReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/deleteGroupMembers:
+    post:
+      summary: 删除群成员
+      description: 删除群成员
+      parameters:
+        - name: PBIMDeleteGroupMembersReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMDeleteGroupMembersReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/addGroupMembers:
+    post:
+      summary: 添加群成员
+      description: 添加群成员
+      parameters:
+        - name: PBIMAddGroupMembersReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMAddGroupMembersReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/joinGroupByInvite:
+    post:
+      summary: 接受邀请入群
+      description: 接受邀请入群
+      parameters:
+        - name: PBIMJoinGroupByInviteReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMJoinGroupByInviteReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/addFriend:
+    post:
+      summary: 处理添加好友请求
+      description: 处理添加好友请求
+      parameters:
+        - name: PBIMAddFriendReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMAddFriendReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/api/approveAllFriend:
+    post:
+      summary: 同意所有好友请求
+      description: 同意所有好友请求
+      parameters:
+        - name: PBIMApproveAllFriendReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMApproveAllFriendReq'
+      tags:
+        - api
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/retrieve:
+    get:
+      summary: 检索联系人信息，根据ID或组合条件
+      description: 检索联系人信息，根据ID或组合条件
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 联系人ID
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMContactDto'
+  /im/contact/retrieveByPlatformUid:
+    get:
+      summary: 检索联系人信息
+      description: 检索联系人信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMContactDto'
+  /im/contact/retrieveByCustomID:
+    get:
+      summary: 检索联系人信息
+      description: 检索联系人信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: customID
+          type: string
+          description: 联系人自定义ID
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMContactDto'
+  /im/contact/retrieveByIDs:
+    get:
+      summary: 根据ID列表获取详情
+      description: 根据ID列表获取详情
+      parameters:
+        - in: query
+          name: ids
+          type: array
+          items:
+            type: integer
+          collectionFormat: multi
+          description: ID列表
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回PBIMContactDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/PBIMContactDto'
+  /im/contact/create:
+    post:
+      summary: 创建联系人
+      description: 创建联系人
+      parameters:
+        - name: PBIMContactDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/ContactCreate'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/update:
+    post:
+      summary: 更新联系人
+      description: 更新联系人
+      parameters:
+        - name: PBIMContactDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMContactDto'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/delete:
+    post:
+      summary: 删除联系人
+      description: 删除联系人
+      parameters:
+        - name: PBIMContactDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMContactDto'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/createAddr:
+    post:
+      summary: 添加联系人地址
+      description: 联系人地址
+      parameters:
+        - name: PBIMAddressDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/AddressCreate'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/retrieveAddr:
+    get:
+      summary: 检索联系人地址
+      description: 检索联系人地址
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 地址ID
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回PBIMAddressDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMAddressDto'
+  /im/contact/updateAddr:
+    post:
+      summary: 更新联系人地址
+      description: 更新联系人地址
+      parameters:
+        - name: PBIMAddressDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMAddressDto'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/deleteAddr:
+    post:
+      summary: 删除联系人地址
+      description: 删除联系人地址
+      parameters:
+        - name: PBIMAddressDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMAddressDto'
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/contact/pageAddr:
+    get:
+      summary: 分页获取关系信息
+      description: 分页获取关系信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 联系人平台自定义ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - contact
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMAddressDto'
+  /im/relation/create:
+    post:
+      summary: 创建联系人关系信息
+      description: 创建联系人关系信息
+      parameters:
+        - name: PBIMRelationDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/RelationCreate'
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/relation/retrieve:
+    get:
+      summary: 检索关系信息
+      description: 检索关系信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: ID
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMRelationDto'
+  /im/relation/retrieveByPlatformUid:
+    get:
+      summary: 检索关系信息
+      description: 检索关系信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMRelationDto'
+  /im/relation/retrieveByCustomID:
+    get:
+      summary: 检索关系信息
+      description: 检索关系信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profileCustomID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: customID
+          type: string
+          description: 联系人自定义ID
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMRelationDto'
+  /im/relation/update:
+    post:
+      summary: 更新联系人关系信息
+      description: 更新联系人关系信息
+      parameters:
+        - name: PBIMRelationDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMRelationDto'
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/relation/delete:
+    post:
+      summary: 删除联系人关系信息
+      description: 删除联系人关系信息
+      parameters:
+        - name: PBIMRelationDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMRelationDto'
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/relation/page:
+    get:
+      summary: 分页获取关系信息
+      description: 分页获取关系信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: profileCustomID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: status
+          type: integer
+          description: '关系状态 1 运营号请求, 2 联系人请求, 3 通过好友, 4 删除好友'
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMRelationDto'
+  /im/relation/list:
+    get:
+      summary: 拉取运营号关系列表
+      description: 拉取运营号关系列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: profileCustomID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: status
+          type: integer
+          description: '关系状态 1 运营号请求, 2 联系人请求, 3 通过好友, 4 删除好友'
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回PBIMRelationDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMRelationDto'
+  /im/relation/pageDupFriends:
+    get:
+      summary: 联系人共同好友统计查询
+      description: 联系人共同好友统计查询
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/DupContact'
+  /im/relation/pageDupContact:
+    get:
+      summary: 共同好友分页查询
+      description: 共同好友分页查询
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 联系人自定义ID
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+      tags:
+        - relation
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMContactDto'
+  /im/group/createGroup:
+    post:
+      summary: 创建群信息
+      description: 创建群信息
+      parameters:
+        - name: PBIMGroupDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMGroupDto'
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/retrieveGroup:
+    get:
+      summary: 根据ID或平台群ID条件检索群信息
+      description: 根据ID或平台群ID条件检索群信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: ID
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回PBIMGroupDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMGroupDto'
+  /im/group/retrieveGroups:
+    get:
+      summary: 根据ID列表获取详情
+      description: 根据ID列表获取详情
+      parameters:
+        - in: query
+          name: ids
+          type: array
+          items:
+            type: integer
+          collectionFormat: multi
+          description: ID列表
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回PBIMGroupDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/PBIMGroupDto'
+  /im/group/updateGroup:
+    post:
+      summary: 更新群信息
+      description: 更新群信息
+      parameters:
+        - name: PBIMGroupDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMGroupDto'
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/deleteGroup:
+    post:
+      summary: 删除群信息
+      description: 删除群信息
+      parameters:
+        - name: PBIMGroupDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMGroupDto'
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/pageGroup:
+    get:
+      summary: 分页获取群信息
+      description: 分页获取群信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: profileCustomID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回PBIMGroupDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMGroupDto'
+  /im/group/listGroup:
+    get:
+      summary: 拉取群信息列表
+      description: 拉取群信息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: profileCustomID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回PBIMGroupDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMGroupDto'
+  /im/group/updateExtra:
+    post:
+      summary: 更新群扩展字段
+      description: 更新群扩展字段
+      parameters:
+        - name: PBIMUpdateGroupExtraReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMUpdateGroupExtraReq'
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/retrieveExtra:
+    get:
+      summary: 拉取群信息列表
+      description: 拉取群信息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+      tags:
+        - group
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/group/friends:
+    get:
+      summary: 分页获取群群内好友信息
+      description: 分页获取群群内好友信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回PBIMGroupMemberDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMGroupMemberDto'
+  /im/group/createMember:
+    post:
+      summary: 添加群成员信息
+      description: 添加群成员信息
+      parameters:
+        - name: PBIMGroupMemberDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/GroupMemberCreate'
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/retrieveMember:
+    get:
+      summary: 检索群成员信息，根据ID或组合条件
+      description: 检索群成员信息，根据ID或组合条件
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 成员ID
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 成员平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 成员平台自定义ID
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回PBIMGroupMemberDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMGroupMemberDto'
+  /im/group/UpdateMember:
+    post:
+      summary: 更新群成员信息
+      description: 更新群成员信息
+      parameters:
+        - name: PBIMGroupMemberDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMGroupMemberDto'
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/deleteMember:
+    post:
+      summary: 删除群成员信息
+      description: 删除群成员信息
+      parameters:
+        - name: PBIMGroupDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMGroupMemberDto'
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/group/pageMember:
+    get:
+      summary: 分页获取群成员信息
+      description: 分页获取群成员信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回PBIMGroupMemberDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMGroupMemberDto'
+  /im/group/listMember:
+    get:
+      summary: 拉取群成员信息列表
+      description: 拉取群成员信息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - groupMember
+      responses:
+        '200':
+          description: 返回PBIMGroupMemberDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMGroupMemberDto'
+  /im/message/create:
+    post:
+      summary: 添加聊天消息
+      description: 添加聊天消息
+      parameters:
+        - name: PBIMMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/MessageCreate'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/retrieve:
+    get:
+      summary: 检索聊天消息
+      description: 检索聊天消息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 消息ID
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回PBIMMessageDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMMessageDto'
+  /im/message/update:
+    post:
+      summary: 更新聊天消息
+      description: 更新聊天消息
+      parameters:
+        - name: PBIMMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMMessageDto'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/revoke:
+    post:
+      summary: 撤销聊天消息
+      description: 撤销聊天消息
+      parameters:
+        - name: PBIMMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMMessageDto'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/delete:
+    post:
+      summary: 删除聊天消息
+      description: 删除聊天消息
+      parameters:
+        - name: PBIMMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMMessageDto'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/list:
+    get:
+      summary: 拉取聊天消息列表
+      description: 拉取聊天消息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: platformGid
+          type: string
+          description: 平台群ID
+        - in: query
+          name: content
+          type: string
+          description: 消息内容
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回PBIMMessageDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMMessageDto'
+  /im/message/createTemplate:
+    post:
+      summary: 添加模板消息
+      description: 添加模板消息
+      parameters:
+        - name: PBIMMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/TemplateMessageCreate'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/retrieveTemplate:
+    get:
+      summary: 检索模板消息
+      description: 检索模板消息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 模板消息ID
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回PBIMTemplateMessageDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMTemplateMessageDto'
+  /im/message/updateTemplate:
+    post:
+      summary: 更新模板消息
+      description: 更新模板消息
+      parameters:
+        - name: PBIMTemplateMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMTemplateMessageDto'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/deleteTemplate:
+    post:
+      summary: 删除模板消息
+      description: 删除模板消息
+      parameters:
+        - name: PBIMTemplateMessageDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMTemplateMessageDto'
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/message/pageTemplate:
+    get:
+      summary: 拉取模板消息列表
+      description: 拉取模板消息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: messageType
+          type: integer
+          description: 消息类型
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - message
+      responses:
+        '200':
+          description: 返回PBIMTemplateMessageDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMTemplateMessageDto'
+  /im/profile/create:
+    post:
+      summary: 添加运营号信息
+      description: 添加运营号信息
+      parameters:
+        - name: PBIMProfileDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/ProfileCreate'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/retrieve:
+    get:
+      summary: 检索运营号信息
+      description: 检索运营号信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: 运营号ID
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 运营号平台自定义ID
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMProfileDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/retrieveByUDID:
+    get:
+      summary: 检索运营号信息
+      description: 检索运营号信息
+      parameters:
+        - in: query
+          name: udid
+          type: string
+          description: 设备唯一ID
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMProfileDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/retrieveByContactIDs:
+    get:
+      summary: 根据ID列表获取详情
+      description: 根据ID列表获取详情
+      parameters:
+        - in: query
+          name: contactIDs
+          type: array
+          items:
+            type: integer
+          collectionFormat: multi
+          description: ID列表
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMProfileDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/update:
+    post:
+      summary: 更新运营号信息
+      description: 更新运营号信息
+      parameters:
+        - name: PBIMProfileDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMProfileDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/delete:
+    post:
+      summary: 删除运营号信息
+      description: 删除运营号信息
+      parameters:
+        - name: PBIMProfileDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMProfileDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/page:
+    get:
+      summary: 分页获取运营号信息
+      description: 分页获取运营号信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMProfileDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/list:
+    get:
+      summary: 拉取运营号信息列表
+      description: 拉取运营号信息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMProfileDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/pageDupFans:
+    get:
+      summary: 运营号重粉统计查询
+      description: 运营号重粉统计查询
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/DupProfile'
+  /im/profile/pageDupContact:
+    get:
+      summary: 重粉列表分页查询
+      description: 重粉列表分页查询
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 运营号自定义ID
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMContactDto'
+  /im/profile/contacts:
+    get:
+      summary: 拉取运营号的联系人id列表
+      description: 拉取运营号的联系人id列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: platformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: customID
+          type: string
+          description: 运营号平台自定义ID
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/PBIMProfileDto'
+  /im/profile/updateExtra:
+    post:
+      summary: 更新运营号扩展信息
+      description: 更新运营号扩展信息
+      parameters:
+        - name: PBIMUpdateProfileExtraReq
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMUpdateProfileExtraReq'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/createControl:
+    post:
+      summary: 添加运营默认的配置
+      description: 添加运营号默认的配置
+      parameters:
+        - name: PBIMControlCreate
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/ControlCreate'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/retrieveControl:
+    get:
+      summary: 检索运营配置信息
+      description: 检索运营配置信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: ID
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: type
+          type: string
+          description: 配置类型
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMControlDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMControlDto'
+  /im/profile/updateControl:
+    post:
+      summary: 更新运营配置信息
+      description: 更新运营配置信息
+      parameters:
+        - name: PBIMControlDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMControlDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/deleteControl:
+    post:
+      summary: 删除运营配置信息
+      description: 删除运营配置信息
+      parameters:
+        - name: PBIMControlDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMControlDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/pageControl:
+    get:
+      summary: 分页获取运营配置信息
+      description: 分页获取运营配置信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMControlDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMControlDto'
+  /im/profile/listControl:
+    get:
+      summary: 拉取运营配置信息列表
+      description: 拉取运营配置信息列表
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMControlDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMControlDto'
+  /im/profile/createAction:
+    post:
+      summary: 添加运营号操作记录
+      description: 添加运营号操作记录
+      parameters:
+        - name: PBIMActionDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/ActionCreate'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/retrieveAction:
+    get:
+      summary: 检索运营号操作记录
+      description: 检索运营号操作记录
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: ID
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMActionDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMActionDto'
+  /im/profile/updateAction:
+    post:
+      summary: 更新运营号操作记录
+      description: 更新运营号操作记录
+      parameters:
+        - name: PBIMActionDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMActionDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/deleteAction:
+    post:
+      summary: 删除运营号操作记录
+      description: 删除运营号操作记录
+      parameters:
+        - name: PBIMActionDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMActionDto'
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/profile/pageAction:
+    get:
+      summary: 分页获取运营号操作记录
+      description: 分页获取运营号操作记录
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 平联系人台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMActionDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMActionDto'
+  /im/profile/listAction:
+    get:
+      summary: 拉取运营号操作记录
+      description: 拉取运营号操作记录
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 平联系人台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - profile
+      responses:
+        '200':
+          description: 返回PBIMActionDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMActionDto'
+  /im/system/create:
+    post:
+      summary: 添加系统配置
+      description: 添加系统配置
+      parameters:
+        - name: PBIMSystemCreate
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/SystemCreate'
+      tags:
+        - system
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/system/retrieve:
+    get:
+      summary: 检索运营号信息
+      description: 检索运营号信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: ID
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: types
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+          description: 系统配置类型
+      tags:
+        - system
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: string
+  /im/system/update:
+    post:
+      summary: 更新系统配置
+      description: 更新系统配置
+      parameters:
+        - name: PBIMSystemDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSystemDto'
+      tags:
+        - system
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/system/delete:
+    post:
+      summary: 删除系统配置
+      description: 删除系统配置
+      parameters:
+        - name: PBIMSystemDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMSystemDto'
+      tags:
+        - system
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/timeline/create:
+    post:
+      summary: 添加timeline(朋友圈)信息
+      description: 添加timeline(朋友圈)信息
+      parameters:
+        - name: PBIMTimelineDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/TimelineCreate'
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/timeline/retrieve:
+    get:
+      summary: 检索timeline信息
+      description: 检索timeline信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: Timeline ID
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回PBIMTimelineDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMTimelineDto'
+  /im/timeline/update:
+    post:
+      summary: 更新timeline信息
+      description: 更新timeline信息
+      parameters:
+        - name: PBIMTimelineDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMTimelineDto'
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/timeline/delete:
+    post:
+      summary: 删除timeline信息
+      description: 删除timeline信息
+      parameters:
+        - name: PBIMTimelineDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMTimelineDto'
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/timeline/page:
+    get:
+      summary: 分页获取timeline信息
+      description: 分页获取timeline信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回PBIMTimelineDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMTimelineDto'
+  /im/timeline/list:
+    get:
+      summary: 拉取timeline信息
+      description: 拉取timeline信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - timeline
+      responses:
+        '200':
+          description: 返回PBIMTimelineDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMTimelineDto'
+  /im/fund/create:
+    post:
+      summary: 添加转账信息
+      description: 添加转账信息
+      parameters:
+        - name: PBIMFundDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/FundCreate'
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/fund/retrieve:
+    get:
+      summary: 检索转账记录信息
+      description: 检索转账信息
+      parameters:
+        - in: query
+          name: id
+          type: integer
+          description: fund ID
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回PBIMFundDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                $ref: '#/definitions/PBIMFundDto'
+  /im/fund/update:
+    post:
+      summary: 更新转账信息
+      description: 更新转账信息
+      parameters:
+        - name: PBIMFundDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMFundDto'
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/fund/delete:
+    post:
+      summary: 删除转账信息
+      description: 删除转账信息
+      parameters:
+        - name: PBIMFundDto
+          in: body
+          description: 参数
+          required: true
+          schema:
+            $ref: '#/definitions/PBIMFundDto'
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+  /im/fund/page:
+    get:
+      summary: 分页获取转账信息
+      description: 分页获取转账信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: pageNo
+          type: integer
+          description: 页码
+        - in: query
+          name: pageSize
+          type: integer
+          description: 每页条数限制
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回PBIMFundDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    pageNo:
+                      type: integer
+                    pageSize:
+                      type: integer
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMFundDto'
+  /im/fund/list:
+    get:
+      summary: 拉取timeline信息
+      description: 拉取timeline信息
+      parameters:
+        - in: query
+          name: serviceID
+          type: integer
+          description: 服务ID
+        - in: query
+          name: profilePlatformUid
+          type: string
+          description: 运营号平台Uid
+        - in: query
+          name: platformUid
+          type: string
+          description: 联系人平台Uid
+        - in: query
+          name: startAt
+          type: integer
+          description: 起始时间戳
+        - in: query
+          name: offset
+          type: integer
+          description: 偏移量
+        - in: query
+          name: direction
+          type: integer
+          description: 查询方向 >=0 升序； <0 降序
+        - in: query
+          name: limit
+          type: integer
+          description: 每页条数限制
+      tags:
+        - fund
+      responses:
+        '200':
+          description: 返回PBIMTimelineDto
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+              msg:
+                type: string
+              data:
+                type: object
+                properties:
+                  hasMore:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/definitions/PBIMFundDto'
+definitions:
+  PBIMProfileDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配运营号ID
+        type: integer
+      contactID:
+        description: 联系人ID
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      platformUid2:
+        description: 平台整型uid
+        type: integer
+      customID:
+        description: 平台自定义id
+        type: string
+      nickname:
+        description: 昵称
+        type: string
+      avatar:
+        description: 头像
+        type: string
+      gender:
+        description: 性别
+        type: integer
+      country:
+        description: 国家
+        type: string
+      state:
+        description: /省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      signature:
+        description: 签名
+        type: string
+      mobilephone:
+        description: 绑定手机号
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      deviceID:
+        description: 设备唯一ID e.g UDID IMEI
+        type: string
+      online:
+        description: 在线状态
+        type: integer
+      appVersion:
+        description: IM(微信)版本
+        type: string
+      balance:
+        description: 余额
+        type: integer
+      qrcode:
+        description: 二维码
+        type: string
+      contactCount:
+        description: 好友数量
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      ctime:
+        description: 记录数据库时间
+        type: integer
+  ProfileCreate:
+    type: object
+    properties:
+      platformUid:
+        description: 平台uid
+        type: string
+      platformUid2:
+        description: 平台整型uid
+        type: integer
+      customID:
+        description: 平台自定义id
+        type: string
+      nickname:
+        description: 昵称
+        type: string
+      avatar:
+        description: 头像
+        type: string
+      gender:
+        description: 性别
+        type: integer
+      country:
+        description: 国家
+        type: string
+      state:
+        description: /省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      signature:
+        description: 签名
+        type: string
+      mobilephone:
+        description: 绑定手机号
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      deviceID:
+        description: 设备唯一ID e.g UDID IMEI
+        type: string
+      online:
+        description: 在线状态
+        type: integer
+      appVersion:
+        description: IM(微信)版本
+        type: string
+      balance:
+        description: 余额
+        type: integer
+      qrcode:
+        description: 二维码
+        type: string
+      contactCount:
+        description: 好友数量
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  DupProfile:
+    type: object
+    properties:
+      count:
+        description: 计数
+        type: integer
+      profile:
+        $ref: '#/definitions/PBIMProfileDto'
+  DupContact:
+    type: object
+    properties:
+      count:
+        description: 计数
+        type: integer
+      contact:
+        $ref: '#/definitions/PBIMContactDto'
+  PBIMContactDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配联系人ID
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义id
+        type: string
+      nickname:
+        description: 昵称
+        type: string
+      avatar:
+        description: 头像
+        type: string
+      gender:
+        description: 性别
+        type: integer
+      country:
+        description: 国家
+        type: string
+      state:
+        description: 省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      signature:
+        description: 签名
+        type: string
+      type:
+        description: 类型
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      ctime:
+        description: 记录数据库时间
+        type: integer
+  ContactCreate:
+    type: object
+    properties:
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义id
+        type: string
+      nickname:
+        description: 昵称
+        type: string
+      avatar:
+        description: 头像
+        type: string
+      gender:
+        description: 性别
+        type: integer
+      country:
+        description: 国家
+        type: string
+      state:
+        description: 省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      signature:
+        description: 签名
+        type: string
+      type:
+        description: 类型
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMRelationDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配关系ID
+        type: integer
+      profileContactID:
+        description: 运营号联系人ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      contactID:
+        description: 联系人ID
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 联系人平台自定义ID
+        type: string
+      type:
+        description: 关系类型
+        type: integer
+      direction:
+        description: 关系方向
+        type: integer
+      requestTime:
+        description: 请求好友时间
+        type: integer
+      requestBy:
+        description: 请求方向
+        type: integer
+      approvedTime:
+        description: 通过好友时间
+        type: integer
+      rejectedTime:
+        description: 拒绝好友时间
+        type: integer
+      removedBy:
+        description: 删除方向
+        type: integer
+      status:
+        description: 好友状态
+        type: integer
+      mobilephones:
+        description: 手机号列表
+        type: array
+        items:
+          type: string
+      alias:
+        description: 备注
+        type: string
+      favorite:
+        description: 标星
+        type: integer
+      warnDelete:
+        description: 删除提示
+        type: integer
+      warnBlacklist:
+        description: 拉黑名单提示
+        type: integer
+      timelineBlockByAccount:
+        description: 朋友圈是否可见
+        type: integer
+      timelineBlockByContact:
+        description: 拉黑
+        type: integer
+      blacklistByAccount:
+        description: 被拉黑
+        type: integer
+      blacklistByContact:
+        description: 添加好友方式、e.g 扫一扫、推荐
+        type: integer
+      addSource:
+        description: 好友来源
+        type: string
+      sourceType:
+        description: 来源类型
+        type: integer
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      customDescription:
+        description: 已定义描述
+        type: string
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+  RelationCreate:
+    type: object
+    properties:
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 联系人平台自定义ID
+        type: string
+      type:
+        description: 关系类型
+        type: integer
+      direction:
+        description: 关系方向
+        type: integer
+      requestTime:
+        description: 请求好友时间
+        type: integer
+      requestBy:
+        description: 请求方向
+        type: integer
+      approvedTime:
+        description: 通过好友时间
+        type: integer
+      rejectedTime:
+        description: 拒绝好友时间
+        type: integer
+      removedBy:
+        description: 删除方向
+        type: integer
+      status:
+        description: 好友状态
+        type: integer
+      mobilephones:
+        description: 手机号列表
+        type: array
+        items:
+          type: string
+      alias:
+        description: 备注
+        type: string
+      favorite:
+        description: 标星
+        type: integer
+      warnDelete:
+        description: 删除提示
+        type: integer
+      warnBlacklist:
+        description: 拉黑名单提示
+        type: integer
+      timelineBlockByAccount:
+        description: 朋友圈是否可见
+        type: integer
+      timelineBlockByContact:
+        description: 拉黑
+        type: integer
+      blacklistByAccount:
+        description: 被拉黑
+        type: integer
+      blacklistByContact:
+        description: 添加好友方式、e.g 扫一扫、推荐
+        type: integer
+      addSource:
+        description: 好友来源
+        type: string
+      sourceType:
+        description: 来源类型
+        type: integer
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      customDescription:
+        description: 自定义描述
+        type: string
+  PBIMGroupDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配群ID
+        type: integer
+      ownerContactID:
+        description: 系统分配群主联系人ID
+        type: integer
+      ownerPlatformUid:
+        description: 群主平台ID
+        type: string
+      ownerCustomID:
+        description: 群主自定义ID
+        type: string
+      profileContactID:
+        description: 运营号系统分配联系人ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformGid:
+        description: 群ID
+        type: string
+      name:
+        description: 群名称
+        type: string
+      avatar:
+        description: 群头像
+        type: string
+      signature:
+        description: 群公告
+        type: string
+      qrcode:
+        description: 群二维码
+        type: string
+      qrcodeGenerateTime:
+        description: 二维码生成时间
+        type: integer
+      ctime:
+        description: 录入系统时间
+        type: integer
+      memberCount:
+        description: 群成员数量
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  GroupCreate:
+    type: object
+    properties:
+      ownerPlatformUid:
+        description: 群主平台ID
+        type: string
+      ownerCustomID:
+        description: 群主自定义ID
+        type: string
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformGid:
+        description: 群ID
+        type: string
+      name:
+        description: 群名称
+        type: string
+      avatar:
+        description: 群头像
+        type: string
+      signature:
+        description: 群公告
+        type: string
+      qrcode:
+        description: 群二维码
+        type: string
+      qrcodeGenerateTime:
+        description: 二维码生成时间
+        type: integer
+      memberCount:
+        description: 群成员数量
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMGroupMemberDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      contactID:
+        description: 系统分配联系人ID
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      gid:
+        description: 系统分配群ID
+        type: integer
+      platformGid:
+        description: 平台群ID
+        type: string
+      alias:
+        description: 成员别名
+        type: string
+      source:
+        description: 成员来源
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      loaded:
+        description: 信息是否完整记录
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+  GroupMemberCreate:
+    type: object
+    properties:
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      alias:
+        description: 成员别名
+        type: string
+      soure:
+        description: 成员来源
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      loaded:
+        description: 信息是否完整记录
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMMessageDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      profileContactID:
+        description: 运营号联系人ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      contactID:
+        description: 联系人ID
+        type: integer
+      platformUid:
+        description: 联系人平台Uid
+        type: string
+      customID:
+        description: 联系人平台自定义ID
+        type: string
+      nickname:
+        description: 联系人昵称
+        type: string
+      gid:
+        description: 系统分配群ID
+        type: integer
+      platformGid:
+        description: 平台群ID
+        type: string
+      direction:
+        description: '方向,相对于运营号 1 收到， 2 发出'
+        type: integer
+      messageType:
+        description: |
+          消息类型
+          文本, 1
+          语音, 2
+          图片, 3
+          视频, 4
+          名片, 5
+          链接, 6
+          红包, 7
+          转账, 8
+          地址, 11
+          好友请求, 12
+          动画, 13
+          语音聊天, 14
+          视频聊天, 15
+          通知, 10000
+        type: integer
+      platformMsgID:
+        description: 平台消息ID
+        type: string
+      platformMsgType:
+        description: 平台消息类型
+        type: integer
+      sessionType:
+        description: '会话类型 P2P, G2G'
+        type: integer
+      content:
+        description: 内容
+        type: string
+      revoke:
+        description: 是否撤销
+        type: integer
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+      sendTime:
+        description: 消息实际发送时间
+        type: integer
+      snapshot:
+        description: 快照
+        type: string
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  MessageCreate:
+    type: object
+    properties:
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformUid:
+        description: 联系人平台Uid
+        type: string
+      customID:
+        description: 联系人平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      direction:
+        description: '方向,相对于运营号 1 收到， 2 发出'
+        type: integer
+      messageType:
+        description: 消息类型
+        type: integer
+      platformMsgType:
+        description: 平台消息类型
+        type: integer
+      sessionType:
+        description: '会话类型 P2P, G2G'
+        type: integer
+      content:
+        description: 内容
+        type: string
+      revoke:
+        description: 是否撤销
+        type: integer
+      sendTime:
+        description: 消息实际发送时间
+        type: integer
+      snapshot:
+        description: 快照
+        type: string
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMTemplateMessageDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      messageType:
+        description: |
+          消息类型
+          文本, 1
+          语音, 2
+          图片, 3
+          视频, 4
+          名片, 5
+          链接, 6
+          红包, 7
+          转账, 8
+          地址, 11
+          好友请求, 12
+          动画, 13
+          语音聊天, 14
+          视频聊天, 15
+          通知, 10000
+        type: integer
+      platformMsgType:
+        description: 平台消息类型
+        type: integer
+      content:
+        description: 内容
+        type: string
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      desc:
+        description: 备注
+        type: string
+  TemplateMessageCreate:
+    type: object
+    properties:
+      messageType:
+        description: |
+          消息类型
+          文本, 1
+          语音, 2
+          图片, 3
+          视频, 4
+          名片, 5
+          链接, 6
+          红包, 7
+          转账, 8
+          地址, 11
+          好友请求, 12
+          动画, 13
+          语音聊天, 14
+          视频聊天, 15
+          通知, 10000
+        type: integer
+      platformMsgType:
+        description: 平台消息类型
+        type: integer
+      content:
+        description: 内容
+        type: string
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      desc:
+        description: 备注
+        type: string
+  PBIMFundDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      profileContactID:
+        description: 运营号联系人ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      contactID:
+        description: 联系人ID
+        type: integer
+      platformUid:
+        description: 平台Uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      platformFundID:
+        description: 平台账单ID
+        type: string
+      type:
+        description: 转账类型
+        type: integer
+      amount:
+        description: 转账金额
+        type: integer
+      direction:
+        description: 转账方向
+        type: integer
+      sendTime:
+        description: '交易发起时间, e.g 发送者 转账发起时间'
+        type: integer
+      receiveTime:
+        description: '交易确认时间, e.g 接收者 转账确认时间'
+        type: integer
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+      snapshot:
+        description: 快照
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  FundCreate:
+    type: object
+    properties:
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformUid:
+        description: 平台Uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      platformFundID:
+        description: 平台账单ID
+        type: string
+      type:
+        description: 转账类型
+        type: integer
+      amount:
+        description: 转账金额
+        type: integer
+      direction:
+        description: 转账方向
+        type: integer
+      sendTime:
+        description: '交易发起时间, e.g 发送者 转账发起时间'
+        type: integer
+      receiveTime:
+        description: '交易确认时间, e.g 接收者 转账确认时间'
+        type: integer
+      snapshot:
+        description: 快照
+        type: string
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMTimelineDto:
+    type: object
+    properties:
+      id:
+        description: timeline ID
+        type: integer
+      contactID:
+        description: 联系人ID
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      nickname:
+        description: 联系人昵称
+        type: string
+      platformTid:
+        description: platform timeline  ID
+        type: string
+      profileContactID:
+        description: 运营号ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台UID
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      location:
+        description: 位置
+        $ref: '#/definitions/PBIMGeoTag'
+      type:
+        description: '类型, e.g 文本 图片 视频'
+        type: integer
+      isPrivate:
+        description: 是否私密
+        type: integer
+      isProfile:
+        description: 是否运营号
+        type: integer
+      content:
+        description: 内容
+        type: string
+      publishTime:
+        description: 发布时间
+        type: integer
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+      mtime:
+        description: 修改时间
+        type: integer
+      mediaItems:
+        description: 图片等
+        type: array
+        items:
+          $ref: '#/definitions/PBIMMediaItem'
+      likeUsers:
+        description: 点赞人
+        type: array
+        items:
+          $ref: '#/definitions/PBIMTimelineLike'
+      comments:
+        description: 评论数据
+        type: array
+        items:
+          $ref: '#/definitions/PBIMTimelineComment'
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 服务id
+        type: string
+      tags:
+        description: 标签
+        type: string
+  TimelineCreate:
+    type: object
+    properties:
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformTid:
+        description: platform timeline  ID
+        type: string
+      profilePlatformUid:
+        description: 运营号平台UID
+        type: string
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      location:
+        description: 位置
+        $ref: '#/definitions/PBIMGeoTag'
+      type:
+        description: '类型, e.g 文本 图片 视频'
+        type: integer
+      isPrivate:
+        description: 是否私密
+        type: integer
+      isProfile:
+        description: 是否运营号
+        type: integer
+      content:
+        description: 内容
+        type: string
+      publishTime:
+        description: 发布时间
+        type: integer
+      mediaItems:
+        description: 图片等
+        type: array
+        items:
+          $ref: '#/definitions/PBIMMediaItem'
+      likeUsers:
+        description: 点赞人
+        type: array
+        items:
+          $ref: '#/definitions/PBIMTimelineLike'
+      comments:
+        description: 评论数据
+        type: array
+        items:
+          $ref: '#/definitions/PBIMTimelineComment'
+      serviceID:
+        description: 服务id
+        type: integer
+      extra:
+        description: 服务id
+        type: string
+      tags:
+        description: 标签
+        type: string
+  PBIMActionDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      contactPlatformUid:
+        description: 联系人平台Uid
+        type: string
+      type:
+        description: 操作类型
+        type: string
+      actionTime:
+        description: 操作时间
+        type: integer
+      content:
+        description: 内容
+        type: string
+      extra:
+        description: 扩展字段
+        type: string
+      ctime:
+        description: 数据库记录创建时间
+        type: integer
+  ActionCreate:
+    type: object
+    properties:
+      serviceID:
+        description: 服务id
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      contactPlatformUid:
+        description: 联系人平台Uid
+        type: string
+      type:
+        description: 操作类型
+        type: string
+      actionTime:
+        description: 操作时间
+        type: integer
+      content:
+        description: 内容
+        type: string
+      extra:
+        description: 扩展字段
+        type: string
+  PBIMControlDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      value:
+        description: 控制配置的内容
+        type: string
+      type:
+        description: 配置类型
+        type: string
+      ctime:
+        description: 创建时间
+        type: integer
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+  ControlCreate:
+    type: object
+    properties:
+      value:
+        description: 控制配置的内容
+        type: string
+      type:
+        description: 配置类型
+        type: string
+      serviceID:
+        description: 服务ID
+        type: integer
+  PBIMSystemDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      value:
+        description: 控制配置的内容
+        type: string
+      type:
+        description: 配置类型
+        type: string
+      ctime:
+        description: 创建时间
+        type: integer
+      serviceID:
+        description: 服务ID
+        type: integer
+      extra:
+        description: 扩展字段
+        type: string
+  SystemCreate:
+    type: object
+    properties:
+      value:
+        description: 控制配置的内容
+        type: string
+      type:
+        description: 配置类型
+        type: string
+  PBIMMediaItem:
+    type: object
+    properties:
+      MIMEType:
+        description: '类型, e.g 图片, 视频, 链接'
+        type: string
+      url:
+        description: url 链接
+        type: string
+  PBIMUpdateProfileExtraReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      profileContactID:
+        description: 运营号联系人ID
+        type: integer
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      key:
+        description: 设置的项
+        type: string
+      value:
+        description: 对应项的值 json
+        type: string
+  PBIMUpdateGroupExtraReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      platformGid:
+        description: 平台群ID
+        type: string
+      profilePlatformUid:
+        description: 运营号平台Uid
+        type: string
+      key:
+        description: 设置的项
+        type: string
+      value:
+        description: 对应项的值 json
+        type: string
+  PBIMSendMessageReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      fromCustomID:
+        description: 发送者平台自定义ID
+        type: string
+      toCustomID:
+        description: 接收者平台自定义ID
+        type: string
+      type:
+        description: |
+          消息类型
+          文本, 1
+          语音, 2
+          图片, 3
+          视频, 4
+          名片, 5
+          链接, 6
+          红包, 7
+          转账, 8
+          地址, 11
+          好友请求, 12
+          动画, 13
+          语音聊天, 14
+          视频聊天, 15
+          模板消息, 18
+          通知, 10000
+        type: integer
+      content:
+        description: 消息内容
+        type: string
+      atMembers:
+        description: 群组消息@的人ID列表
+        type: array
+        items:
+          type: string
+      sessionType:
+        description: 会话类型 1 P2P; 2 群组
+        type: integer
+  PBIMSendBatchMessageReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      fromCustomID:
+        description: 发送者平台自定义ID
+        type: string
+      toCustomIDs:
+        description: 批量接收者平台自定义ID
+        type: array
+        items:
+          type: string
+      type:
+        description: |
+          消息类型
+          文本, 1
+          语音, 2
+          图片, 3
+          视频, 4
+          名片, 5
+          链接, 6
+          红包, 7
+          转账, 8
+          地址, 11
+          好友请求, 12
+          动画, 13
+          语音聊天, 14
+          视频聊天, 15
+          模板消息, 18
+          通知, 10000
+        type: integer
+      content:
+        description: 消息内容
+        type: string
+      atMembers:
+        description: 群组消息@的人ID列表
+        type: array
+        items:
+          type: string
+      sessionType:
+        description: 会话类型 1 P2P; 2 群组
+        type: integer
+  PBIMSendTemplateMessageReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      fromCustomID:
+        description: 发送者平台自定义ID
+        type: string
+      toCustomIDs:
+        description: 批量接收者平台自定义ID
+        type: array
+        items:
+          type: string
+      atMembers:
+        description: 群组消息@的人ID列表
+        type: array
+        items:
+          type: string
+      sessionType:
+        description: 会话类型 1 P2P; 2 群组
+        type: integer
+      templateMsgID:
+        description: 模板消息
+        type: integer
+  PBIMSendTimelineReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      type:
+        description: |
+          消息类型
+          纯文字, 1
+          图片+文件, 2
+          视频+文件, 3
+        type: integer
+      content:
+        description: timeline内容
+        type: string
+      urls:
+        description: 相关链接
+        type: array
+        items:
+          type: string
+  PBIMCreateGroupReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      groupName:
+        description: 平台群ID
+        type: string
+      memberCustomIDs:
+        description: 群成员customID
+        type: array
+        items:
+          type: string
+  PBIMSetGroupNameReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      groupName:
+        description: 群名称
+        type: string
+  PBIMSetGroupDescReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      groupDesc:
+        description: 群备注
+        type: string
+  PBIMDeleteGroupMembersReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      memberCustomIDs:
+        description: 群成员customID
+        type: array
+        items:
+          type: string
+  PBIMAddGroupMembersReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      platformGid:
+        description: 平台群ID
+        type: string
+      memberCustomIDs:
+        description: 群成员customID
+        type: array
+        items:
+          type: string
+  PBIMJoinGroupByInviteReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+      inviterPlatformUid:
+        description: 邀请者平台Uid
+        type: string
+      platformMsgID:
+        description: 邀请消息的平台ID
+        type: string
+  PBIMApproveAllFriendReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      customID:
+        description: 平台自定义ID
+        type: string
+  PBIMAddFriendReq:
+    type: object
+    properties:
+      serviceID:
+        description: 服务ID
+        type: integer
+      profileCustomID:
+        description: 运营号平台自定义ID
+        type: string
+      platformUid:
+        description: 申请人平台Uid
+        type: string
+  PBIMTimelineComment:
+    type: object
+    properties:
+      platformUid:
+        description: 平台Uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      nickname:
+        description: 评论人昵称
+        type: string
+      content:
+        description: 评论内容
+        type: string
+      commentTime:
+        description: 评论时间
+        type: integer
+      commentID:
+        description: 评论ID
+        type: string
+      refCommentID:
+        description: 回复的评论ID
+        type: string
+  PBIMTimelineLike:
+    type: object
+    properties:
+      platformUid:
+        description: 平台Uid
+        type: string
+      customID:
+        description: 平台自定义ID
+        type: string
+      nickname:
+        description: 点赞人昵称
+        type: string
+      likeTime:
+        description: 点赞时间
+        type: integer
+  PBIMGeoTag:
+    type: object
+    properties:
+      latitude:
+        description: 纬度
+        type: number
+        format: double
+      longitude:
+        description: 经度
+        type: number
+        format: double
+      altitude:
+        description: 海拔
+        type: number
+        format: double
+      accuracy:
+        description: 精确度
+        type: number
+        format: double
+      placeName:
+        description: 位置名称
+        type: string
+      city:
+        description: 城市
+        type: string
+      poiName:
+        description: 地标
+        type: string
+      poiAddress:
+        description: 地标地址
+        type: string
+  Filter:
+    type: object
+    properties:
+      key:
+        description: 字段名
+        type: string
+      value:
+        description: 值
+        type: string
+      filterType:
+        description: 搜索类型
+        type: string
+  PageQuery:
+    type: object
+    properties:
+      filters:
+        description: 查询条件列表
+        type: array
+        items:
+          $ref: '#/definitions/Filter'
+      pageNo:
+        description: 页码，从0开始
+        type: integer
+      pageSize:
+        description: 每页记录数
+        type: integer
+      direction:
+        description: 对ctime排序，>= 0 升序， <0 降序
+        type: integer
+  PBIMAddressDto:
+    type: object
+    properties:
+      id:
+        description: 系统分配ID
+        type: integer
+      contactID:
+        description: 联系人ID
+        type: integer
+      serviceID:
+        description: 服务id
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义id
+        type: string
+      name:
+        description: 收货人姓名
+        type: string
+      mobilephone:
+        description: 收货人联系方式
+        type: string
+      country:
+        description: 国家
+        type: string
+      state:
+        description: 省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      district:
+        description: 区
+        type: string
+      addr:
+        description: 详细地址
+        type: string
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      desc:
+        description: 备注说明
+        type: string
+      ctime:
+        description: 记录数据库时间
+        type: integer
+  AddressCreate:
+    type: object
+    properties:
+      serviceID:
+        description: 服务id
+        type: integer
+      platformUid:
+        description: 平台uid
+        type: string
+      customID:
+        description: 平台自定义id
+        type: string
+      name:
+        description: 收货人姓名
+        type: string
+      mobilephone:
+        description: 收货人联系方式
+        type: string
+      country:
+        description: 国家
+        type: string
+      state:
+        description: 省份
+        type: string
+      city:
+        description: 城市
+        type: string
+      district:
+        description: 区
+        type: string
+      addr:
+        description: 详细地址
+        type: string
+      extra:
+        description: 扩展字段
+        type: string
+      tags:
+        description: 标签
+        type: string
+      desc:
+        description: 备注说明
+        type: string

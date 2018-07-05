@@ -1,5 +1,6 @@
 # PUPPET-IOSCAT
 
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 [![NPM Version](https://badge.fury.io/js/wechaty-puppet-ioscat.svg)](https://badge.fury.io/js/wechaty-puppet-ioscat)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/lym152898/wechaty-puppet-ioscat.svg?branch=master)](https://travis-ci.com/lym152898/wechaty-puppet-ioscat)

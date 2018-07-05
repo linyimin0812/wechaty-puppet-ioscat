@@ -72,7 +72,7 @@ class IMSink {
       }
       // 订阅相关消息
       this.subscribe(topic, msg => {
-        console.log(msg)
+        //console.log(msg)
           this.event.emit('MESSAGE', msg)
           return
       })

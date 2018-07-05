@@ -121,24 +121,24 @@ export class PuppetIoscat extends Puppet {
 
     this.state.on(true)
 
-    this.id = 'logined_user_id'
+    this.id = this.options.token || ioscatToken()
     // const user = this.Contact.load(this.id)
     this.emit('login', this.id)
 
-    const MOCK_MSG_ID = 'mockid'
-    this.cacheMessagePayload.set(MOCK_MSG_ID, {
-      fromId    : 'xxx',
-      id        : MOCK_MSG_ID,
-      text      : 'mock text',
-      timestamp : Date.now(),
-      toId      : 'xxx',
-      type      : MessageType.Text,
-    })
+    // const MOCK_MSG_ID = 'mockid'
+    // this.cacheMessagePayload.set(MOCK_MSG_ID, {
+    //   fromId    : 'xxx',
+    //   id        : MOCK_MSG_ID,
+    //   text      : 'mock text',
+    //   timestamp : Date.now(),
+    //   toId      : 'xxx',
+    //   type      : MessageType.Text,
+    // })
 
-    this.loopTimer = setInterval(() => {
-      log.verbose('PuppetIoscat', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
-      this.emit('message', MOCK_MSG_ID)
-    }, 3000)
+    // this.loopTimer = setInterval(() => {
+    //   log.verbose('PuppetIoscat', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
+    //   this.emit('message', MOCK_MSG_ID)
+    // }, 3000)
 
   }
 

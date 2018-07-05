@@ -3,9 +3,9 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 
-import { PuppetMock } from './puppet--ioscat'
+import { PuppetIoscat } from './puppet-ioscat'
 
-class PuppetMockTest extends PuppetMock {
+class PuppetMockTest extends PuppetIoscat {
 }
 
 test('PuppetMock restart without problem', async (t) => {

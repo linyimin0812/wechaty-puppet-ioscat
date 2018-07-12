@@ -44,6 +44,11 @@ import {
 }                       from 'wechaty-puppet'
 
 import {
+  IoscatMessageRawPayload,
+  IosCatContactRawPayload,
+} from './ioscat-schemas'
+
+import {
   log,
   qrCodeForChatie,
 }                   from './config'
@@ -54,32 +59,10 @@ import {default as IMSink} from './im-sink'
 import {UUID, ioscatToken, customID} from './config'
 const uuidv1 = require('uuid/v1') 
 
-import {PBIMSendMessageReq, ApiApi} from './api'
-export interface MockContactRawPayload {
-  name : string,
-}
+import {PBIMSendMessageReq, ApiApi, ContactApi} from './api'
 
-export interface IoscatMessageRawPayload {
-  id                    : string,
-  payload               : {
-    profilePlatformUid  : string,
-    profileCustomID     : string,
-    platformUid         : string,
-    customID            : string,
-    direction           : number,
-    messageType         : number,
-    sessionType         : number,
-    platformMsgType     : number,
-    content             : string,
-    revoke              : number,
-    sendTime            : number,
-    snapshot            : string,
-    serviceID           : number,
-    platformMsgID       : string,
-    deviceID            : string 
-  },
-  type                  : string,
-}
+
+
 
 export interface MockRoomRawPayload {
   topic      : string,
@@ -89,7 +72,9 @@ export interface MockRoomRawPayload {
 
 export class PuppetIoscat extends Puppet {
 
-  private loopTimer?: NodeJS.Timer
+  private API:ApiApi = new ApiApi()
+  private CONTACT_API = new ContactApi()
+  //private loopTimer?: NodeJS.Timer
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
 
   constructor (
@@ -123,27 +108,14 @@ export class PuppetIoscat extends Puppet {
 
     this.id = this.options.token || ioscatToken()
     // const user = this.Contact.load(this.id)
-    this.emit('login', this.id)
-
-    // const MOCK_MSG_ID = 'mockid'
-    // this.cacheMessagePayload.set(MOCK_MSG_ID, {
-    //   fromId    : 'xxx',
-    //   id        : MOCK_MSG_ID,
-    //   text      : 'mock text',
-    //   timestamp : Date.now(),
-    //   toId      : 'xxx',
-    //   type      : MessageType.Text,
-    // })
-
-    // this.loopTimer = setInterval(() => {
-    //   log.verbose('PuppetIoscat', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
-    //   this.emit('message', MOCK_MSG_ID)
-    // }, 3000)
-
+    // emit contactId
+    // TODO: 验证
+    this.emit('login', 'dancewuli')
   }
 
   private initEventHook () {
     IMSink.event.on('MESSAGE', async msg => {
+      //TODO: cuid
       msg['id'] = uuidv1()
       this.cacheIoscatMessagePayload.set(msg.id, msg)
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
@@ -152,7 +124,8 @@ export class PuppetIoscat extends Puppet {
       }
       // 掉线信息
       if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT' && msg.payload.toUpperCase() === UUID) {
-        this.emit('error', msg.id)
+        // throw 一个error
+        this.emit('error', new Error(msg.id))
         return
       }
       // 添加好友信息
@@ -163,26 +136,27 @@ export class PuppetIoscat extends Puppet {
     })
   }
   public async stop (): Promise<void> {
-    log.verbose('PuppetIoscat', 'quit()')
+    log.verbose('PuppetIoscat', 'stop()')
 
     if (this.state.off()) {
-      log.warn('PuppetIoscat', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetIoscat', 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
 
     this.state.off('pending')
 
-    if (this.loopTimer) {
-      clearInterval(this.loopTimer)
-    }
+    // if (this.loopTimer) {
+    //   clearInterval(this.loopTimer)
+    // }
 
-    // await some tasks...
+    // await some taks...
     // 关闭监听消息事件
     IMSink.getConn().then((CONN: any) => {
       CONN.close()
       console.log('Amqp链接关闭')
     }).catch(err => {
+      // TODO: 换成日志形式
       console.log(err)
     });
     
@@ -219,6 +193,7 @@ export class PuppetIoscat extends Puppet {
     return
   }
 
+  // contactID的数组
   public async contactList (): Promise<string[]> {
     log.verbose('PuppetIoscat', 'contactList()')
 
@@ -254,23 +229,45 @@ export class PuppetIoscat extends Puppet {
     return FileBox.fromFile(WECHATY_ICON_PNG)
   }
 
-  public async contactRawPayload (id: string): Promise<MockContactRawPayload> {
+  public async contactRawPayload (id: string): Promise<IosCatContactRawPayload> {
     log.verbose('PuppetIoscat', 'contactRawPayload(%s)', id)
-    const rawPayload: MockContactRawPayload = {
-      name : 'mock name',
-    }
+    
+    // 获取id对应的消息
+    //const messageRawPayload = this.cacheIoscatMessagePayload.get(id)
+    // 获取用户ID
+    //const customID = messageRawPayload.payload.customID
+    // 获取微信号对应的消息
+    const response = await this.CONTACT_API.imContactRetrieveByCustomIDGet(13, id)
+    const rawPayload: IosCatContactRawPayload = response.body.data
+    log.verbose('PuppetIoscat', 'contactRawPayload123(%s)', JSON.stringify(rawPayload))
     return rawPayload
   }
 
-  public async contactRawPayloadParser (rawPayload: MockContactRawPayload): Promise<ContactPayload> {
+  public async contactRawPayloadParser (rawPayload: IosCatContactRawPayload): Promise<ContactPayload> {
     log.verbose('PuppetIoscat', 'contactRawPayloadParser(%s)', rawPayload)
 
+    let gender = ContactGender.Unknown
+    if(rawPayload.gender === 1){
+      gender = ContactGender.Male
+    }else if(rawPayload.gender === 2){
+      gender = ContactGender.Female
+    }
+    let contactType = ContactType.Unknown
+    if(rawPayload.type === 1){
+      contactType = ContactType.Personal
+    }else if(rawPayload.type === 2){
+      contactType = ContactType.Official
+    }
     const payload: ContactPayload = {
-      avatar : 'mock-avatar-data',
-      gender : ContactGender.Unknown,
-      id     : 'id',
-      name   : 'mock-name',
-      type   : ContactType.Unknown,
+      avatar    : rawPayload.avatar,
+      gender    : gender,
+      id        : rawPayload.id.toString(),
+      name      : rawPayload.nickname,
+      type      : contactType,
+      city      : rawPayload.city,
+      province  : rawPayload.state,
+      signature : rawPayload.signature,
+      weixin    : rawPayload.customID
     }
     return payload
   }
@@ -351,7 +348,6 @@ export class PuppetIoscat extends Puppet {
     text     : string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, text)
-    let api:ApiApi = new ApiApi()
     let data: PBIMSendMessageReq = new PBIMSendMessageReq()
     data.serviceID = 13
     data.fromCustomID = this.options.token || ioscatToken() // WECHATY_PUPPET_IOSCAT_TOKEN
@@ -365,7 +361,7 @@ export class PuppetIoscat extends Puppet {
     }else{
       throw new Error('接收人名称不能为空')
     }
-    api.imApiSendMessagePost(data)
+    this.API.imApiSendMessagePost(data)
 
   }
 
@@ -525,6 +521,7 @@ export class PuppetIoscat extends Puppet {
    * Friendship
    *
    */
+  // 特殊消息的messageId
   public async friendshipRawPayload (id: string)            : Promise<any> {
     return { id } as any
   }

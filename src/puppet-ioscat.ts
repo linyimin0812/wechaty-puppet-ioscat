@@ -18,6 +18,9 @@
  */
 import path  from 'path'
 
+import os from 'os'
+
+import fs     from 'fs-extra'
 import LRU      from 'lru-cache'
 
 import {
@@ -46,20 +49,25 @@ import {
 import {
   IoscatMessageRawPayload,
   IosCatContactRawPayload,
+  IosCatRoomMemberRawPayload,
+  IosCatRoomRawPayload
 } from './ioscat-schemas'
 
 import {
   log,
   qrCodeForChatie,
+  CONSTANT
 }                   from './config'
 
 
 import {default as IMSink} from './im-sink'
 
 import {UUID, ioscatToken, customID} from './config'
-const uuidv1 = require('uuid/v1') 
+const cuid = require('cuid') 
 
 import {PBIMSendMessageReq, ApiApi, ContactApi} from './api'
+
+//import { IosCatManager } from './ioscat-manager'
 
 
 
@@ -72,10 +80,13 @@ export interface MockRoomRawPayload {
 
 export class PuppetIoscat extends Puppet {
 
+  // ios API class instance
   private API:ApiApi = new ApiApi()
   private CONTACT_API = new ContactApi()
   //private loopTimer?: NodeJS.Timer
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
+
+  //private readonly iosCatManaget = new IosCatManager
 
   constructor (
     public options: PuppetOptions = {},
@@ -115,8 +126,7 @@ export class PuppetIoscat extends Puppet {
 
   private initEventHook () {
     IMSink.event.on('MESSAGE', async msg => {
-      //TODO: cuid
-      msg['id'] = uuidv1()
+      msg['id'] = cuid()
       this.cacheIoscatMessagePayload.set(msg.id, msg)
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
         this.emit('message', msg.id)
@@ -156,8 +166,7 @@ export class PuppetIoscat extends Puppet {
       CONN.close()
       console.log('Amqp链接关闭')
     }).catch(err => {
-      // TODO: 换成日志形式
-      console.log(err)
+      log.error('IMSink get connection failed', err)
     });
     
     this.state.off(true)
@@ -188,9 +197,10 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', 'contactAlias(%s, %s)', contactId, alias)
 
     if (typeof alias === 'undefined') {
-      return 'mock alias'
+      let contact = await this.contactPayload(contactId)
+      return contact.alias || ''
     }
-    return
+    throw new Error('not supported')
   }
 
   // contactID的数组
@@ -219,14 +229,14 @@ export class PuppetIoscat extends Puppet {
      * 1. set
      */
     if (file) {
-      return
+      throw new Error('not support')
     }
 
     /**
      * 2. get
      */
-    const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.fromFile(WECHATY_ICON_PNG)
+    const contact = await this.contactPayload(contactId)
+    return FileBox.fromUrl(contact.avatar)
   }
 
   public async contactRawPayload (id: string): Promise<IosCatContactRawPayload> {
@@ -237,7 +247,7 @@ export class PuppetIoscat extends Puppet {
     // 获取用户ID
     //const customID = messageRawPayload.payload.customID
     // 获取微信号对应的消息
-    const response = await this.CONTACT_API.imContactRetrieveByCustomIDGet(13, id)
+    const response = await this.CONTACT_API.imContactRetrieveByPlatformUidGet(CONSTANT.serviceID, id)
     const rawPayload: IosCatContactRawPayload = response.body.data
     log.verbose('PuppetIoscat', 'contactRawPayload123(%s)', JSON.stringify(rawPayload))
     return rawPayload
@@ -292,8 +302,16 @@ export class PuppetIoscat extends Puppet {
 
   public async messageRawPayloadParser (rawPayload: IoscatMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetIoscat', 'messagePayload(%s)', rawPayload)
-    let fromId  = rawPayload.payload.direction === 1 ? rawPayload.payload.profileCustomID : rawPayload.payload.customID
-    let toId    = rawPayload.payload.direction === 1 ? rawPayload.payload.customID : rawPayload.payload.profileCustomID
+    let fromId  = rawPayload.payload.direction === 1 ? rawPayload.payload.customID : rawPayload.payload.profileCustomID
+    let toId    = ''
+    // P2P 
+    if(rawPayload.payload.sessionType === 1){
+      toId    = rawPayload.payload.direction === 1 ? rawPayload.payload.profileCustomID : rawPayload.payload.customID
+    }
+    // G2G
+    else{
+      toId    = rawPayload.payload.direction === 1 ? rawPayload.payload.platformGid : rawPayload.payload.customID
+    }
     const payload: MessagePayload = {
       fromId    : fromId,
       id        : rawPayload.id,
@@ -301,6 +319,9 @@ export class PuppetIoscat extends Puppet {
       timestamp : rawPayload.payload.sendTime, // unix timestamp (seconds)
       toId      : toId,
       type      : this.messageType(rawPayload.payload.messageType),
+    }
+    if(rawPayload.payload.sessionType === 2){
+      payload.roomId = rawPayload.payload.platformGid
     }
     return payload
   }
@@ -349,15 +370,15 @@ export class PuppetIoscat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, text)
     let data: PBIMSendMessageReq = new PBIMSendMessageReq()
-    data.serviceID = 13
+    data.serviceID = CONSTANT.serviceID
     data.fromCustomID = this.options.token || ioscatToken() // WECHATY_PUPPET_IOSCAT_TOKEN
     data.sessionType = 1
     data.content =text
     // 私聊
     if(receiver.contactId){
       data.toCustomID = receiver.contactId
-    }else if(receiver.contactId){
-      data.toCustomID = receiver.contactId
+    }else if(receiver.roomId){
+      data.toCustomID = receiver.roomId
     }else{
       throw new Error('接收人名称不能为空')
     }

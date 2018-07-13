@@ -1,3 +1,5 @@
+import { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } from "constants";
+
 export interface IoscatMessageRawPayload {
 
   // { payload:
@@ -73,5 +75,67 @@ export interface IosCatContactRawPayload {
   serviceID: number,      // 服务号
   extra: string,          // 扩展字段
   ctime: number           // 记录数据库时间
+
+}
+
+export interface IosCatRoomMemberRawPayload {
+
+  // {
+  //   "id": 26916304982016,
+  //   "contactID": 26354400891429,
+  //   "platformUid": "wxid_1htfbf5cm7z322",
+  //   "gid": 26354400890881,
+  //   "platformGid": "8144046175@chatroom",
+  //   "source": "wxid_aeopz1eoj9jx22",
+  //   "serviceID": 13,
+  //   "loaded": 2,
+  //   "ctime": 1524380855
+  // }
+  id            :number,      // 系统分配ID
+  contactID     :number,      // 系统分配联系人ID
+  platformUid   :string,      // 平台uid
+  gid           :string,      // 系统分配群ID
+  platformGid   :string,      // 平台群ID
+  source        :string,      // 成员来源
+  serviceID     :number,      // 服务id
+  loaded        :number,      // 信息是否完整记录
+  ctime         :number,      // 数据库记录创建时间
+  alas?         :string,      // 成员别名
+  extra?        :string,      // 扩展字段
+  tags?         :string       // 标签
+}
+
+
+export interface IosCatRoomRawPayload {
+  // {
+  //   "id": 26354400890881,
+  //   "ownerPlatformUid": "qq512436430",
+  //   "profilePlatformUid": "wxid_tdax1huk5hgs12",
+  //   "platformGid": "8144046175@chatroom",
+  //   "name": "舞哩团02群",
+  //   "avatar": "http://wx.qlogo.cn/mmcrhead/PiajxSqBRaEIDG5azH8ZXhft6vkKhMHS4Ia7EYeGPRl7HzwkOSjiaiccqzfQYicUvnSq6G6WliaicWNScJFNmVVjAw0mmuqZEWiaGNk/0",
+  //   "signature": "禁止任何广告，拒绝伸手党，否则一律踢",
+  //   "qrcode": "http://cloudbrain-pic.oss-cn-shenzhen.aliyuncs.com/82ffc9a46079fe6bb6867a10b49deff8",
+  //   "qrcodeGenerateTime": 1531313065,
+  //   "memberCount": 237,
+  //   "serviceID": 13
+  // }
+  id                        :number,      // 系统分配群ID
+  ownerContactID            :string,      // 系统分配群主联系人ID
+  ownerPlatformUid?         :string,      // 群主平台ID
+  profilePlatformUid        :string,      // 运营号平台Uid
+  ownerCustomID?            :string,      // 群主自定义ID
+  platformGid               :string,      // 群ID
+  profileContactID?         :string,      // 运营号系统分配联系人ID
+  name                      :string,      // 群名称
+  avatar                    :string,      // 群头像
+  signature                 :string,      // 群公告
+  qrcode                    :string,      // 群二维码
+  qrcodeGenerateTime        :number,      // 二维码生成时间
+  memberCount               :number,      // 群成员数量 
+  serviceID                 :number,      // 服务id
+  ctime?                    :number,      // 录入系统时间
+  extra?                    :string,      // 扩展字段
+  tags?                     :string       // 标签
 
 }

@@ -79,6 +79,10 @@ class IMSink {
     } catch (err) {
       console.log(err)
     }
+    process.once('SIGINT',function(){
+      IMSink.conn.close();
+      console.log('Amqp链接关闭')
+    });
   }
 }
 

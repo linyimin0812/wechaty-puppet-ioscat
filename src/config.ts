@@ -11,10 +11,14 @@ export function qrCodeForChatie (): FileBox {
 }
 
 export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D';
-export const customID = 'dancewuli'
-
 export const CONSTANT = {
-  serviceID: 13
+  serviceID: 13,
+  NAN: 0,
+  NULL: '',
+  LIMIT: 10000,
+  P2P: 1,
+  G2G: 2,
+  CUSTOM_ID: 'dancewuli'
 }
 
 import {

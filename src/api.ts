@@ -8156,12 +8156,17 @@ export class ContactApi {
      */
     public imContactRetrieveByIDsGet(ids?: Array<number>): Promise<{ response: http.ClientResponse, body: InlineResponse2004 }> {
         const localVarPath = this.basePath + '/im/contact/retrieveByIDs'
-        let localVarQueryParameters: any = {}
+        let localVarQueryParameters: string = '?'
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders)
         let localVarFormParams: any = {}
 
         if (ids !== undefined) {
-            localVarQueryParameters['ids'] = ObjectSerializer.serialize(ids, "Array<number>")
+            //localVarQueryParameters['ids'] = ObjectSerializer.serialize(ids, "Array<number>")
+            localVarQueryParameters += ids[0]
+
+            for(let i = 1; i < ids.length; i++){
+              localVarQueryParameters += `&ids=${ids[i]}`
+            }
         }
 
 
@@ -8169,13 +8174,11 @@ export class ContactApi {
 
         let localVarRequestOptions: localVarRequest.Options = {
             method: 'GET',
-            qs: localVarQueryParameters,
             headers: localVarHeaderParams,
-            uri: localVarPath,
+            uri: localVarPath + localVarQueryParameters,
             useQuerystring: this._useQuerystring,
             json: true,
         }
-
         this.authentications.default.applyToRequest(localVarRequestOptions)
 
         if (Object.keys(localVarFormParams).length) {

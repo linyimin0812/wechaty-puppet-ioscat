@@ -273,10 +273,48 @@ export class IosCatManager {
         return value.platformUid
       })
       rawPayload.memberIdList = memberIdList
-      log.verbose('PuppetIosCatManager', 'rawPayload: %s', rawPayload)
+      log.verbose('PuppetIosCatManager', 'rawPayload: %s', JSON.stringify(rawPayload, null, 2))
       this.cacheRoomRawPayload.set(id, rawPayload)
       return rawPayload
     }
     throw new Error('room of id is not exist')
+  }
+
+  public getRoomIdList (): string[] {
+    log.verbose('PuppetiosCatManager', 'getRoomIdList()')
+    if (!this.cacheRoomRawPayload) {
+      throw new Error('cache not inited' )
+    }
+    const roomIdList = [...this.cacheRoomRawPayload.keys()]
+    log.verbose('PuppetiosCatManager', 'getRoomIdList()=%d', roomIdList.length)
+    return roomIdList
+  }
+
+  public async getRoomMemberIdList (
+    roomId: string,
+    dirty = false,
+  ): Promise<string[]> {
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d)', roomId)
+    if (!this.cacheRoomMemberRawPayload) {
+      throw new Error('cache not inited')
+    }
+
+    if (dirty) {
+      this.roomMemberRawPayloadDirty(roomId)
+    }
+
+    const memberRawPayloadDict = this.cacheRoomMemberRawPayload.get(roomId)
+                                || await this.syncRoomMember(roomId)
+
+    if (!memberRawPayloadDict) {
+      // or return [] ?
+      throw new Error('roomId not found: ' + roomId)
+    }
+
+    const memberIdList = Object.keys(memberRawPayloadDict)
+
+    // console.log('memberRawPayloadDict:', memberRawPayloadDict)
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
+    return memberIdList
   }
 }

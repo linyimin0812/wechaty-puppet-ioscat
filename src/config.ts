@@ -15,10 +15,21 @@ export const CONSTANT = {
   serviceID: 13,
   NAN: 0,
   NULL: '',
-  LIMIT: 10000,
+  LIMIT: 1000,
   P2P: 1,
   G2G: 2,
   CUSTOM_ID: 'dancewuli'
+}
+
+/**
+ * 关系状态 1 运营号请求, 2 联系人请求, 3 通过好友, 4 删除好友
+ */
+export const enum STATUS {
+  OPERATOR_REUQEST = 1,
+  CONTACT_REQUEST = 2,
+  FRIENDS_ACCEPTED = 3,
+  FRIENDS_DELETED = 4
+
 }
 
 import {

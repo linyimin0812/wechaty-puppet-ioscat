@@ -3,19 +3,19 @@
 import {
   MessagePayload,
   MessageType,
-}                         from 'wechaty-puppet'
+} from 'wechaty-puppet'
 
 import {
   IoscatMessageRawPayload,
   // PadchatMessageType,
   // PadchatContactPayload,
-}                         from '../ioscat-schemas'
+} from '../ioscat-schemas'
 
 import {
   messageType,
-}                         from './message-type'
+} from './message-type'
 
-export function messageRawPayloadParser (
+export function messageRawPayloadParser(
   rawPayload: IoscatMessageRawPayload,
 ): MessagePayload {
 
@@ -27,15 +27,15 @@ export function messageRawPayloadParser (
   const type = messageType(rawPayload.payload.messageType)
 
   const payloadBase = {
-    id        : rawPayload.id,
-    timestamp : rawPayload.payload.sendTime,   // iosCat message timestamp is seconds
+    id: rawPayload.id,
+    timestamp: rawPayload.payload.sendTime,   // iosCat message timestamp is seconds
     type,
   } as {
-    id        : string,
-    timestamp : number,
-    type      : MessageType,
-    filename? : string,
-  }
+      id: string,
+      timestamp: number,
+      type: MessageType,
+      filename?: string,
+    }
 
   // TODO: not deal with file, just realise the text
   // if (   type === MessageType.Image
@@ -48,51 +48,50 @@ export function messageRawPayloadParser (
 
   let fromId: undefined | string
   let roomId: undefined | string
-  let toId:   undefined | string
+  let toId: undefined | string
 
-  let text:   undefined | string
+  let text: undefined | string
 
   /**
    * sessionType = 1 : P2P
    * sessionType = 2 : G2G
-   */ 
+   */
   const sessionType = rawPayload.payload.sessionType
 
   /**
    * direction = 1 : operator recieve a message
    * direction = 2 : operator send a message
    */
-  const direction   = rawPayload.payload.direction
+  const direction = rawPayload.payload.direction
   /**
    * 1. Set Room Id
    */
 
-  if(sessionType == 2){
-      roomId = rawPayload.payload.platformGid
-  }else {
+  if (sessionType == 2) {
+    roomId = rawPayload.payload.platformGid
+  } else {
     roomId = undefined
   }
 
   /**
    * 2. Set To Contact Id
    */
-  if(sessionType == 1){
-    if(direction === 1){
+  if (sessionType == 1) {
+    if (direction === 1) {
       toId = rawPayload.payload.profilePlatformUid
-    }else{
-        toId = rawPayload.payload.platformUid
+    } else {
+      toId = rawPayload.payload.platformUid
     }
-  }else{
+  } else {
     toId = undefined
   }
-  
 
   /**
    * 3. Set From Contact Id
    */
-  if(direction === 1){
+  if (direction === 1) {
     fromId = rawPayload.payload.platformUid
-  }else{
+  } else {
     fromId = rawPayload.payload.profilePlatformUid
   }
 

@@ -5,7 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Linux/Mac Build Status](https://travis-ci.com/lym152898/wechaty-puppet-ioscat.svg?branch=master)](https://travis-ci.com/lym152898/wechaty-puppet-ioscat)
 
-![wechaty puppet ioscat](https://linyimin-bupt.github.io/wechaty-puppet-ioscat/images/ioscat.png)
+![wechaty puppet ioscat](https://linyimin-bupt.github.io/wechaty-puppet-ioscat/images/ioscat.jpeg)
 
 ## USAGE
 

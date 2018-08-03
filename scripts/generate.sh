@@ -9,7 +9,7 @@ docker run --rm -v \
     -l typescript-node \
     -o /local/generated
 
-sudo chmod -R 777 generated 
+sudo chown -R $(id -un) generated/
 
 tsc \
   --target esnext \

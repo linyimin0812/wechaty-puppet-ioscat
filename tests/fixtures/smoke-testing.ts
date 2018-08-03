@@ -1,10 +1,5 @@
 #!/usr/bin/env ts-node
 
-// tslint:disable:arrow-parens
-// tslint:disable:max-line-length
-// tslint:disable:member-ordering
-// tslint:disable:no-shadowed-variable
-// tslint:disable:unified-signatures
 // tslint:disable:no-console
 
 import {

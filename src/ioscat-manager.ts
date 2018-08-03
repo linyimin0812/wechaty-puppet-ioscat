@@ -78,7 +78,7 @@ export class IosCatManager {
     if (!baseDirExist) {
       await fs.mkdirp(baseDir)
     }
-    console.log('PuppetIoscat', 'initCache(%s, %s)', token, userId)
+    log.silly('PuppetIoscat', 'initCache(%s, %s)', token, userId)
 
     try {
       this.cacheContactRawPayload = new FlashStoreSync(path.join(baseDir, 'contact-raw-payload'))
@@ -91,7 +91,7 @@ export class IosCatManager {
         this.cacheRoomRawPayload.ready(),
       ])
     } catch (err) {
-      console.log(err)
+      log.error(err)
     }
 
     const roomMemberTotalNum = [...this.cacheRoomMemberRawPayload.values()].reduce(
@@ -219,14 +219,14 @@ export class IosCatManager {
       const platformUid = this.options.token || ioscatToken()
       const contactIDs = new Array<number>()
       while (true) {
-        const body = (await this.RELATION_API.imRelationPageGet(CONSTANT.serviceID, platformUid, CONSTANT.NULL,
-          STATUS.FRIENDS_ACCEPTED, CONSTANT.NAN, page, CONSTANT.LIMIT, CONSTANT.NAN)).body
-        if (body.code === 0) {
+        const relationPageBody = (await this.RELATION_API.imRelationPageGet(CONSTANT.serviceID,
+          platformUid, CONSTANT.NULL, STATUS.FRIENDS_ACCEPTED, CONSTANT.NAN, page, CONSTANT.LIMIT, CONSTANT.NAN)).body
+        if (relationPageBody.code === 0) {
           // when content is [], it means all contacts have got
-          if (body.data.content.length === 0) {
+          if (relationPageBody.data.content.length === 0) {
             break
           }
-          for (const contact of body.data.content) {
+          for (const contact of relationPageBody.data.content) {
             contactIDs.push(contact.contactID)
           }
           // get next page contacts's id

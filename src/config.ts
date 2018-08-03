@@ -12,13 +12,13 @@ export function qrCodeForChatie (): FileBox {
 
 export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D'
 export const CONSTANT = {
-  serviceID: 13,
+  CUSTOM_ID: 'dancewuli',
+  G2G: 2,
+  LIMIT: 1000,
   NAN: 0,
   NULL: '',
-  LIMIT: 1000,
   P2P: 1,
-  G2G: 2,
-  CUSTOM_ID: 'dancewuli'
+  serviceID: 13,
 }
 
 /**
@@ -47,5 +47,5 @@ export function ioscatToken (): string {
     return process.env.WECHATY_PUPPET_IOSCAT_TOKEN
   }
 
-  throw new Error('Wechaty Puppet Ioscat needs a token, please set it in environment variable WECHATY_PUPPET_IOSCAT_TOKEN')
+  throw new Error('Please set it in environment variable WECHATY_PUPPET_IOSCAT_TOKEN')
 }

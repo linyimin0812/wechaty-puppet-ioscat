@@ -1,15 +1,17 @@
 import { Wechaty } from 'wechaty'
 import { PuppetIoscat } from '../src/'
 
+import { log } from '../src/config'
+
 const puppet = new PuppetIoscat({
   token: 'xxx',
 })
 
 const wechaty = new Wechaty({ puppet })
 
-wechaty.on('login', (user) => console.log(`login: ${user}`))
+wechaty.on('login', (user) => log.silly(`login: ${user}`))
 .on('message', (msg) => {
-  console.log(`msg: ${msg}`)
+  log.silly(`msg: ${msg}`)
 })
 
 wechaty.start()

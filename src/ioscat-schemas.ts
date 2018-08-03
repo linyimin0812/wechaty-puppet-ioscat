@@ -2,20 +2,20 @@
 /**
  * type	integer
  * 文本,   1
-  语音, 2
-  图片, 3
-  视频, 4
-  名片, 5
-  链接, 6
-  红包, 7
-  转账, 8
-  地址, 11
-  好友请求, 12
-  动画,    13
-  语音聊天, 14
-  视频聊天, 15
-  模板消息, 18
-  通知, 10000
+ * 语音, 2
+ * 图片, 3
+ * 视频, 4
+ * 名片, 5
+ * 链接, 6
+ * 红包, 7
+ * 转账, 8
+ * 地址, 11
+ * 好友请求, 12
+ * 动画,    13
+ * 语音聊天, 14
+ * 视频聊天, 15
+ * 模板消息, 18
+ * 通知, 10000
  */
 export enum IosCatMessageType {
   Text              = 1,
@@ -130,7 +130,7 @@ export interface IosCatContactRawPayload {
   //     "platformUid": "wxid_j76jk7muhgqz22",
   //     "customID": "lymbupy",
   //     "nickname": "林贻民",
-  //     "avatar": "http://wx.qlogo.cn/mmhead/ver_1/Wu9XiakD8zKichzEBQmAgJwkJZK6L7VS3yOVRRKGVQRoyOc0sQQymmoicC92q9bhToDiah3L5twHeU6ibPZSz54feSIReicBnbvLqbRkUlN6mFQjc/132",
+  //     "avatar": "http://wx.qlogo.cn/mmhead/ver_1/z54feSIReicBnbvLqbRkUlN6mFQjc/132",
   //     "gender": 1,
   //     "country": "中国",
   //     "state": "海南",
@@ -175,54 +175,54 @@ export interface IosCatRoomMemberRawPayload {
   // }
 
   /**
-    * 系统分配ID
-    */
+   * 系统分配ID
+   */
   id: number
-   /**
+  /**
    * 系统分配联系人ID
    */
   contactID: number
-   /**
+  /**
    * 平台uid
    */
   platformUid: string
-   /**
+  /**
    * 平台自定义ID
    */
   customID?: string
-   /**
+  /**
    * 系统分配群ID
    */
   gid: number
-   /**
+  /**
    * 平台群ID
    */
   platformGid: string
-   /**
+  /**
    * 成员别名
    */
   alias?: string
-   /**
+  /**
    * 成员来源
    */
   source?: string
-   /**
+  /**
    * 服务id
    */
   serviceID: number
-   /**
+  /**
    * 信息是否完整记录
    */
   loaded?: number
-   /**
+  /**
    * 扩展字段
    */
   extra?: string
-   /**
+  /**
    * 标签
    */
   tags?: string
-   /**
+  /**
    * 数据库记录创建时间
    */
   ctime?: number
@@ -235,7 +235,7 @@ export interface IosCatRoomRawPayload {
   //   "profilePlatformUid": "wxid_tdax1huk5hgs12",
   //   "platformGid": "8144046175@chatroom",
   //   "name": "舞哩团02群",
-  //   "avatar": "http://wx.qlogo.cn/mmcrhead/PiajxSqBRaEIDG5azH8ZXhft6vkKhMHS4Ia7EYeGPRl7HzwkOSjiaiccqzfQYicUvnSq6G6WliaicWNScJFNmVVjAw0mmuqZEWiaGNk/0",
+  //   "avatar": "http://wx.qlogo.cn/mmcrhead/PiajxSqBRaEIDG5azH8ZXhft6vkKhMHS4IamVVjAw0mmuqZEWiaGNk/0",
   //   "signature": "禁止任何广告，拒绝伸手党，否则一律踢",
   //   "qrcode": "http://cloudbrain-pic.oss-cn-shenzhen.aliyuncs.com/82ffc9a46079fe6bb6867a10b49deff8",
   //   "qrcodeGenerateTime": 1531313065,
@@ -243,74 +243,74 @@ export interface IosCatRoomRawPayload {
   //   "serviceID": 13
   // }
   /**
-    * 系统分配群ID
-    */
+   * 系统分配群ID
+   */
   id: number,
-   /**
+  /**
    * 系统分配群主联系人ID
    */
   ownerContactID?: number,
-   /**
+  /**
    * 群主平台ID
    */
   ownerPlatformUid: string,
-   /**
+  /**
    * 群主自定义ID
    */
   ownerCustomID?: string,
-   /**
+  /**
    * 运营号系统分配联系人ID
    */
   profileContactID?: number,
-   /**
+  /**
    * 运营号平台Uid
    */
   profilePlatformUid: string,
-   /**
+  /**
    * 运营号平台自定义ID
    */
   profileCustomID?: string,
-   /**
+  /**
    * 群ID
    */
   platformGid: string,
-   /**
+  /**
    * 群名称
    */
   name: string,
-   /**
+  /**
    * 群头像
    */
   avatar: string,
-   /**
+  /**
    * 群公告
    */
   signature: string,
-   /**
+  /**
    * 群二维码
    */
   qrcode: string,
-   /**
+  /**
    * 二维码生成时间
    */
   qrcodeGenerateTime: number,
-   /**
+  /**
    * 录入系统时间
    */
   ctime: number,
-   /**
+  /**
    * 群成员数量
    */
   memberCount: number,
-   /**
+  /**
    * 服务id
    */
   serviceID: number,
-   /**
+  /**
    * 扩展字段
    */
   extra?: string,
-   /**
+  /**
    * 标签
    */
   tags?: string,

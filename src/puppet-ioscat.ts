@@ -49,14 +49,15 @@ import {
 
 import {
   CONSTANT,
+  ioscatToken,
   log,
-  qrCodeForChatie
+  qrCodeForChatie,
+  UUID
 } from './config'
 
 import { default as IMSink } from './im-sink'
 
-import { ioscatToken, UUID } from './config'
-const cuid = require('cuid')
+import cuid from 'cuid'
 
 import {
   ApiApi,
@@ -179,7 +180,7 @@ export class PuppetIoscat extends Puppet {
     // 关闭监听消息事件
     IMSink.getConn().then((CONN: any) => {
       CONN.close()
-      console.log('Amqp链接关闭')
+      log.silly('Amqp链接关闭')
     }).catch((err) => {
       log.error('IMSink get connection failed', err)
     })
@@ -281,13 +282,13 @@ export class PuppetIoscat extends Puppet {
     }
     const payload: ContactPayload = {
       avatar: rawPayload.avatar,
+      city: rawPayload.city,
       gender,
       id: rawPayload.platformUid,
       name: rawPayload.nickname,
-      type: contactType,
-      city: rawPayload.city,
       province: rawPayload.state,
       signature: rawPayload.signature,
+      type: contactType,
       weixin: rawPayload.customID
     }
     return payload
@@ -394,11 +395,11 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', 'roomRawPayloadParser(%s)', JSON.stringify(rawPayload, null, 2))
 
     const payload: RoomPayload = {
+      avatar: rawPayload.avatar,
       id: rawPayload.platformGid,
       memberIdList: rawPayload.memberIdList,
+      ownerId: rawPayload.ownerPlatformUid,
       topic: rawPayload.name,
-      avatar: rawPayload.avatar,
-      ownerId: rawPayload.ownerPlatformUid
     }
     return payload
   }
@@ -416,12 +417,12 @@ export class PuppetIoscat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'roomDel(%s, %s)', roomId, contactId)
     const requestBody: PBIMDeleteGroupMembersReq = {
-      serviceID: CONSTANT.serviceID,
       customID: this.options.token || ioscatToken(),
-      platformGid: roomId,
       memberCustomIDs: [
         contactId
-      ]
+      ],
+      platformGid: roomId,
+      serviceID: CONSTANT.serviceID,
     }
 
     const body = (await this.API.imApiDeleteGroupMembersPost(requestBody)).body
@@ -451,12 +452,12 @@ export class PuppetIoscat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'roomAdd(%s, %s)', roomId, contactId)
     const requestBody: PBIMAddGroupMembersReq = {
-      serviceID: CONSTANT.serviceID,
       customID: this.options.token || ioscatToken(),
-      platformGid: roomId,
       memberCustomIDs: [
         contactId
-      ]
+      ],
+      platformGid: roomId,
+      serviceID: CONSTANT.serviceID
     }
     const body = (await this.API.imApiAddGroupMembersPost(requestBody)).body
     if (body.code === 0) {
@@ -482,10 +483,10 @@ export class PuppetIoscat extends Puppet {
     }
     // change the topic to the value of topic argument
     const requestBody: PBIMSetGroupNameReq = {
-      serviceID: CONSTANT.serviceID,
       customID: this.options.token || ioscatToken(),
+      groupName: topic,
       platformGid: roomId,
-      groupName: topic
+      serviceID: CONSTANT.serviceID,
     }
     const body = (await this.API.imApiSetGroupNamePost(requestBody)).body
     if (body.code === 0) {
@@ -501,15 +502,15 @@ export class PuppetIoscat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetIoscat', 'roomCreate(%s, %s)', JSON.stringify(contactIdList), topic)
     const requestBody: PBIMCreateGroupReq = {
-      serviceID: CONSTANT.serviceID,
       customID: this.options.token || ioscatToken(),
       groupName: topic,
-      memberCustomIDs: contactIdList
+      memberCustomIDs: contactIdList,
+      serviceID: CONSTANT.serviceID
     }
     const body = (await this.API.imApiCreateGroupPost(requestBody)).body
     let platformGid: string = ''
     if (body.code === 0) {
-      IosCatEvent.once('room-create', function (roomId, newTopic) {
+      IosCatEvent.once('room-create', (roomId, newTopic) => {
         if (topic === newTopic) {
           platformGid = roomId
         }
@@ -572,9 +573,9 @@ export class PuppetIoscat extends Puppet {
     return {
       avatar: contactPayload.avatar,
       id: rawPayload.platformUid,
+      inviterId: rawPayload.source,
       name: contactPayload.name,
       roomAlias: rawPayload.alias,
-      inviterId: rawPayload.source
     }
   }
 
@@ -585,10 +586,10 @@ export class PuppetIoscat extends Puppet {
     const roomRawPayload = await this.iosCatManager.roomRawPayload(roomId)
     if (text) {
       const requestBody: PBIMSetGroupDescReq = {
-        serviceID: CONSTANT.serviceID,
         customID: this.options.token || ioscatToken(),
         groupDesc: text,
-        platformGid: roomId
+        platformGid: roomId,
+        serviceID: CONSTANT.serviceID
       }
       const body = (await this.API.imApiSetGroupDescPost(requestBody)).body
       if (body.code === 0) {

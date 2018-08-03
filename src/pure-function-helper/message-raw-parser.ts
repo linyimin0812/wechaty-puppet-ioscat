@@ -67,7 +67,7 @@ export function messageRawPayloadParser (
    * 1. Set Room Id
    */
 
-  if (sessionType == 2) {
+  if (sessionType === 2) {
     roomId = rawPayload.payload.platformGid
   } else {
     roomId = undefined
@@ -76,7 +76,7 @@ export function messageRawPayloadParser (
   /**
    * 2. Set To Contact Id
    */
-  if (sessionType == 1) {
+  if (sessionType === 1) {
     if (direction === 1) {
       toId = rawPayload.payload.profilePlatformUid
     } else {

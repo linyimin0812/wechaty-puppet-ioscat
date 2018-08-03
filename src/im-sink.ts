@@ -1,5 +1,6 @@
 import * as amqp from 'amqplib/callback_api'
 import { EventEmitter } from 'events'
+import { log } from './config'
 class IMSink {
   // 连接消息队列
   public static conn
@@ -16,12 +17,12 @@ class IMSink {
       amqp.connect('amqp://admin:qwertyuiop@39.108.78.208:5672', (err, conn) => {
         if (err) {
           reject(err)
-          console.log('Connect error', err)
+          log.error('Connect error', err)
           return
         }
         this.conn = conn
         resolve(conn)
-        console.log('Connect success')
+        log.silly('Connect success')
       })
     })
   }
@@ -35,12 +36,12 @@ class IMSink {
       this.conn.createChannel((err, ch) => {
         if (err) {
           reject(err)
-          console.log('获取消息队列通道失败', err)
+          log.error('获取消息队列通道失败', err)
           return
         }
         this.channel = ch
         resolve(ch)
-        console.log('获取消息队列通道成功')
+        log.silly('获取消息队列通道成功')
       })
     })
   }
@@ -50,7 +51,7 @@ class IMSink {
       this.channel.assertQueue('test2', { durable: false }, (err, q) => {
         if (err) {
           reject(err)
-          console.log('绑定消息队列失败,无法完成消息的订阅')
+          log.silly('绑定消息队列失败,无法完成消息的订阅')
           return
         }
         this.channel.bindQueue(q.queue, 'micro', topic)
@@ -77,11 +78,11 @@ class IMSink {
         return
       })
     } catch (err) {
-      console.log(err)
+      log.error(err)
     }
-    process.once('SIGINT',function () {
+    process.once('SIGINT', () => {
       IMSink.conn.close()
-      console.log('Amqp链接关闭')
+      log.silly('Amqp链接关闭')
     })
   }
 }

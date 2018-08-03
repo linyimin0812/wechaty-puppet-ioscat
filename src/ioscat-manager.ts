@@ -156,7 +156,8 @@ export class IosCatManager {
     const memberDict: { [contactId: string]: IosCatRoomMemberRawPayload } = {}
 
     for (const member of members.content) {
-      memberDict[member.platformUid] = member
+      // FIXME: should not use `as any`
+      memberDict[member.platformUid] = member as any
     }
 
     log.silly('PuppetIosCatManager', 'syncRoomMember(%s) total %d members',
@@ -204,7 +205,8 @@ export class IosCatManager {
       // if not rooms exist, the result roomList will be []
       if (roomList && roomList.length) {
         for (const room of roomList) {
-          const roomRawPayload: IosCatRoomRawPayload = room
+          // FIXME: should not use `as any`
+          const roomRawPayload: IosCatRoomRawPayload = room as any
           const roomId = roomRawPayload.platformGid
           this.cacheRoomRawPayload.set(roomId, roomRawPayload)
         }
@@ -240,7 +242,8 @@ export class IosCatManager {
 
       if (body.code === 0) {
         for (const contact of body.data) {
-          this.cacheContactRawPayload.set(contact.platformUid, contact)
+          // FIXME: should not use `as any`
+          this.cacheContactRawPayload.set(contact.platformUid, contact as any)
         }
       }
       log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
@@ -294,7 +297,8 @@ export class IosCatManager {
 
     // room is not exist in cache, get it from infrastructure API
     const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.NAN, CONSTANT.serviceID, id)
-    const rawPayload: IosCatRoomRawPayload = response.body.data
+    // FIXME: should not use `as any`
+    const rawPayload: IosCatRoomRawPayload = response.body.data as any
 
     // get memberIdList from infrastructure API with roomId
     const listMemberResponse = await this.GROUP_MEMBER_API.imGroupListMemberGet(CONSTANT.serviceID, id, CONSTANT.NAN,
@@ -327,7 +331,8 @@ export class IosCatManager {
     }
     const response = await this.CONTACT_API.imContactRetrieveByPlatformUidGet(CONSTANT.serviceID, contactId)
     if (response.body.code === 0 && response.body.data) {
-      const rawPayload: IosCatContactRawPayload = response.body.data
+      // FIXME: should not use `as any`
+      const rawPayload: IosCatContactRawPayload = response.body.data as any
       this.cacheContactRawPayload.set(contactId, rawPayload)
       return rawPayload
     }

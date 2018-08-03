@@ -12,13 +12,13 @@ export function qrCodeForChatie (): FileBox {
 
 export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D'
 export const CONSTANT = {
-  CUSTOM_ID: 'dancewuli',
-  G2G: 2,
-  LIMIT: 1000,
-  NAN: 0,
-  NULL: '',
-  P2P: 1,
-  serviceID: 13,
+  CUSTOM_ID : 'dancewuli',
+  G2G       : 2,
+  LIMIT     : 1000,
+  NAN       : 0,
+  NULL      : '',
+  P2P       : 1,
+  serviceID : 13,
 }
 
 /**
@@ -26,9 +26,9 @@ export const CONSTANT = {
  */
 export const enum STATUS {
   OPERATOR_REUQEST = 1,
-  CONTACT_REQUEST = 2,
+  CONTACT_REQUEST  = 2,
   FRIENDS_ACCEPTED = 3,
-  FRIENDS_DELETED = 4
+  FRIENDS_DELETED  = 4
 
 }
 

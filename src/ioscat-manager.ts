@@ -38,10 +38,10 @@ export class IosCatManager {
   /**
    * swagger generator api
    */
-  private GROUP_API = new GroupApi()
-  private GROUP_MEMBER_API = new GroupMemberApi()
+  private GROUP_API                 = new GroupApi()
+  private GROUP_MEMBER_API          = new GroupMemberApi()
   private RELATION_API: RelationApi = new RelationApi()
-  private CONTACT_API: ContactApi = new ContactApi()
+  private CONTACT_API: ContactApi   = new ContactApi()
 
   constructor (
     public options: PuppetOptions = {},

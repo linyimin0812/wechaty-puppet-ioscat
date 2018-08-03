@@ -14,6 +14,7 @@
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
     "dist": "tsc && cp -Rav generated/ dist/",
+    "example": "ts-node examples/test.ts",
     "generate": "bash -x scripts/generate.sh",
     "pack": "npm pack",
     "lint": "npm run lint:ts && npm run lint:md",

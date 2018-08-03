@@ -8,3 +8,12 @@ docker run --rm -v \
     -i /local/swagger/ioscat.yaml \
     -l typescript-node \
     -o /local/generated
+
+tsc \
+  --target esnext \
+  --module commonjs \
+  --declaration \
+  --declarationMap \
+  generated/api.ts
+
+rm -f generated/api.ts

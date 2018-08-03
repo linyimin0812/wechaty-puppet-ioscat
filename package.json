@@ -68,7 +68,7 @@
     "ts-node": "^7.0.0",
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.1.0",
-    "typescript": "^2.9.2",
+    "typescript": "^3.0.1",
     "watchdog": "^0.8.10",
     "wechaty": "^0.17.108",
     "wechaty-puppet": "^0.8.5"

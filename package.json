@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
-    "dist": "npm run clean && tsc",
+    "dist": "tsc",
     "generate": "bash -x scripts/generate.sh",
     "pack": "npm pack",
     "lint": "npm run lint:ts && npm run lint:md",

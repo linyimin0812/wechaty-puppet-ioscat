@@ -45,7 +45,7 @@ export function messageType (
       break
 
     default:
-      throw new Error('unsupported type: ' + IosCatMessageType[rawType] + '(' + rawType + ')')
+      throw +new Error('unsupported type: ' + IosCatMessageType[rawType] + '(' + rawType + ')')
   }
 
   return type

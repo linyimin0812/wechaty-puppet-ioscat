@@ -15,7 +15,7 @@ import {
   messageType,
 } from './message-type'
 
-export function messageRawPayloadParser(
+export function messageRawPayloadParser (
   rawPayload: IoscatMessageRawPayload,
 ): MessagePayload {
 
@@ -31,11 +31,11 @@ export function messageRawPayloadParser(
     timestamp: rawPayload.payload.sendTime,   // iosCat message timestamp is seconds
     type,
   } as {
-      id: string,
-      timestamp: number,
-      type: MessageType,
-      filename?: string,
-    }
+    id: string,
+    timestamp: number,
+    type: MessageType,
+    filename?: string,
+  }
 
   // TODO: not deal with file, just realise the text
   // if (   type === MessageType.Image

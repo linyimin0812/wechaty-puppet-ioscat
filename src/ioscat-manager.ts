@@ -23,7 +23,7 @@ import {
   GroupApi,
   GroupMemberApi,
   RelationApi,
-} from './api'
+}                   from '../generated/api'
 
 import { PuppetOptions } from 'wechaty-puppet'
 

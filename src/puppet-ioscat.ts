@@ -61,14 +61,12 @@ import cuid from 'cuid'
 
 import {
   ApiApi,
-  ContactApi,
   PBIMAddGroupMembersReq,
   PBIMCreateGroupReq,
   PBIMDeleteGroupMembersReq,
   PBIMSendMessageReq,
   PBIMSetGroupDescReq,
   PBIMSetGroupNameReq,
-  RelationApi
 } from '../generated/api'
 
 import { IosCatManager } from './ioscat-manager'
@@ -86,8 +84,6 @@ export class PuppetIoscat extends Puppet {
 
   // ios API class instance
   private API: ApiApi = new ApiApi()
-  private CONTACT_API = new ContactApi()
-  private RELATION_API = new RelationApi()
 
   // private loopTimer?: NodeJS.Timer
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
@@ -123,7 +119,7 @@ export class PuppetIoscat extends Puppet {
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
     log.silly('topic:%s', topic)
-    IMSink.start(topic)
+    await IMSink.start(topic)
 
     this.state.on(true)
 
@@ -133,7 +129,10 @@ export class PuppetIoscat extends Puppet {
     await this.iosCatManager.initCache(this.id, CONSTANT.CUSTOM_ID)
 
     // sync roomMember, contact and room
-    this.iosCatManager.syncContactsAndRooms()
+    // TODO:
+    this.iosCatManager.syncContactsAndRooms().catch(err => {
+      log.error('PuppetIoscat', 'syncContactsAndRooms() %s', JSON.stringify(err))
+    })
     // const user = this.Contact.load(this.id)
     // emit contactId
     // TODO: 验证
@@ -186,7 +185,7 @@ export class PuppetIoscat extends Puppet {
     })
 
     // release cache
-    this.iosCatManager.releaseCache()
+    await this.iosCatManager.releaseCache()
 
     this.state.off(true)
   }
@@ -202,7 +201,7 @@ export class PuppetIoscat extends Puppet {
     this.id = undefined
 
     // do the logout job --> release cache
-    this.iosCatManager.releaseCache()
+    await this.iosCatManager.releaseCache()
   }
 
   /**

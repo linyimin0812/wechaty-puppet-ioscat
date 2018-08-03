@@ -10,7 +10,7 @@ export function qrCodeForChatie (): FileBox {
   return FileBox.fromStream(qrStream, name)
 }
 
-export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D';
+export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D'
 export const CONSTANT = {
   serviceID: 13,
   NAN: 0,
@@ -42,7 +42,7 @@ export {
   log,
 }
 
-export function ioscatToken(): string {
+export function ioscatToken (): string {
   if (process.env.WECHATY_PUPPET_IOSCAT_TOKEN) {
     return process.env.WECHATY_PUPPET_IOSCAT_TOKEN
   }

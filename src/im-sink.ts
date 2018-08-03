@@ -1,13 +1,13 @@
-import { EventEmitter } from 'events'
 import * as amqp from 'amqplib/callback_api'
+import { EventEmitter } from 'events'
 class IMSink {
   // 连接消息队列
-  static conn
+  public static conn
   // 消息队列通道
-  static channel
+  public static channel
 
-  static event = new EventEmitter()
-  static async getConn() {
+  public static event = new EventEmitter()
+  public static async getConn () {
     return new Promise((resolve, reject) => {
       if (this.conn) {
         resolve(this.conn)
@@ -25,11 +25,11 @@ class IMSink {
       })
     })
   }
-  static async getChannel() {
+  public static async getChannel () {
     return new Promise((resolve, reject) => {
       if (this.channel) {
         resolve(this.channel)
-        //console.log('获取消息队列通道成功')
+        // console.log('获取消息队列通道成功')
         return
       }
       this.conn.createChannel((err, ch) => {
@@ -44,7 +44,7 @@ class IMSink {
       })
     })
   }
-  static async subscribe(topic, callback) {
+  public static async subscribe (topic, callback) {
     return new Promise((resolve, reject) => {
       this.channel.assertExchange('micro', 'topic', { durable: false })
       this.channel.assertQueue('test2', { durable: false }, (err, q) => {
@@ -54,7 +54,7 @@ class IMSink {
           return
         }
         this.channel.bindQueue(q.queue, 'micro', topic)
-        this.channel.consume(q.queue, msg => {
+        this.channel.consume(q.queue, (msg) => {
           const obj = JSON.parse(msg.content.toString())
           callback(obj)
         }, { noAck: true })
@@ -62,7 +62,7 @@ class IMSink {
     })
   }
 
-  static async start(topic: string) {
+  public static async start (topic: string) {
     try {
       if (!IMSink.conn) {
         IMSink.conn = await this.getConn()
@@ -71,18 +71,18 @@ class IMSink {
         IMSink.channel = await this.getChannel()
       }
       // 订阅相关消息
-      this.subscribe(topic, msg => {
-        //console.log(msg)
-          this.event.emit('MESSAGE', msg)
-          return
+      this.subscribe(topic, (msg) => {
+        // console.log(msg)
+        this.event.emit('MESSAGE', msg)
+        return
       })
     } catch (err) {
       console.log(err)
     }
-    process.once('SIGINT',function(){
-      IMSink.conn.close();
+    process.once('SIGINT',function () {
+      IMSink.conn.close()
       console.log('Amqp链接关闭')
-    });
+    })
   }
 }
 

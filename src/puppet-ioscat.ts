@@ -69,7 +69,7 @@ import {
   PBIMSetGroupDescReq,
   PBIMSetGroupNameReq,
   RelationApi
-}                               from '../generated/api'
+} from '../generated/api'
 
 import { IosCatManager } from './ioscat-manager'
 
@@ -92,7 +92,7 @@ export class PuppetIoscat extends Puppet {
   // private loopTimer?: NodeJS.Timer
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
 
-  private iosCatManager: IosCatManager = undefined
+  private iosCatManager: IosCatManager
 
   constructor (
     public options: PuppetOptions = {},
@@ -310,7 +310,10 @@ export class PuppetIoscat extends Puppet {
   public async messageRawPayload (id: string): Promise<IoscatMessageRawPayload> {
     log.verbose('PuppetIoscat', 'messageRawPayload(%s)', id)
     const rawPayload = this.cacheIoscatMessagePayload.get(id)
-    return rawPayload
+    if (rawPayload) {
+      return rawPayload
+    }
+    throw new Error('message not exist')
   }
 
   public async messageRawPayloadParser (rawPayload: IoscatMessageRawPayload): Promise<MessagePayload> {
@@ -394,14 +397,15 @@ export class PuppetIoscat extends Puppet {
   ): Promise<RoomPayload> {
     log.verbose('PuppetIoscat', 'roomRawPayloadParser(%s)', JSON.stringify(rawPayload, null, 2))
 
-    const payload: RoomPayload = {
+    // FIXME: should not use any
+    const payload = {
       avatar: rawPayload.avatar,
       id: rawPayload.platformGid,
       memberIdList: rawPayload.memberIdList,
       ownerId: rawPayload.ownerPlatformUid,
       topic: rawPayload.name,
     }
-    return payload
+    return payload as any
   }
 
   public async roomList (): Promise<string[]> {
@@ -631,6 +635,20 @@ export class PuppetIoscat extends Puppet {
     log.silly('PuppetIoscat', 'ding(%s)', data || '')
     this.emit('dong', data)
     return
+  }
+
+  public async roomInvitationAccept (roomInvitationId: string): Promise<void> {
+    log.silly('roomInvitationAccept (%s)', roomInvitationId)
+  }
+
+  public async roomInvitationRawPayload (rawPayload: any): Promise<any> {
+    log.silly('roomInvitationRawPayload (%o)', rawPayload)
+    return {} as any
+  }
+
+  public async roomInvitationRawPayloadParser (rawPayload: any): Promise<any> {
+    log.silly('roomInvitationRawPayloadParser (%o)', rawPayload)
+    return {} as any
   }
 
 }

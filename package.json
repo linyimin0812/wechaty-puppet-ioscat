@@ -46,7 +46,7 @@
     "@types/blue-tape": "^0.1.31",
     "@types/fs-extra": "^5.0.4",
     "@types/lru-cache": "^4.1.1",
-    "@types/node": "^10.5.4",
+    "@types/node": "^10.5.5",
     "@types/normalize-package-data": "^2.4.0",
     "@types/qr-image": "^3.2.1",
     "@types/read-pkg-up": "^3.0.1",
@@ -90,6 +90,7 @@
     "wechaty-puppet": "^0.9.25"
   },
   "dependencies": {
+    "amqp": "^0.2.7",
     "amqplib": "^0.5.2",
     "flash-store": "^0.5.4",
     "fs-extra": "^6.0.1",

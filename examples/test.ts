@@ -15,13 +15,13 @@ wechaty.on('login', (user) => log.silly(`login: ${user}`))
     const to = msg.to()
     const room = msg.room()
     if (from) {
-      log.silly(from.name())
+      log.silly('test', 'message', from.name())
     }
     if (to) {
-      log.silly(to.name())
+      log.silly('test', 'message', to.name())
     }
     if (room) {
-      log.silly(await room.topic())
+      log.silly('test', 'message', await room.topic())
     }
   })
 

@@ -3,13 +3,13 @@ import { EventEmitter } from 'events'
 import { log } from './config'
 class IMSink {
   // 连接消息队列
-  public static conn
+  public static conn: amqp.Connection
   // 消息队列通道
-  public static channel
+  public static channel: amqp.Channel
 
   public static event = new EventEmitter()
-  public static async getConn () {
-    return new Promise((resolve, reject) => {
+  public static async getConn (): Promise<amqp.Connection> {
+    return new Promise<amqp.Connection>((resolve, reject) => {
       if (this.conn) {
         resolve(this.conn)
         return
@@ -22,12 +22,12 @@ class IMSink {
         }
         this.conn = conn
         resolve(conn)
-        log.silly('Connect success')
+        log.silly('IMSink', 'Connect success')
       })
     })
   }
-  public static async getChannel () {
-    return new Promise((resolve, reject) => {
+  public static async getChannel (): Promise<amqp.Channel> {
+    return new Promise<amqp.Channel>((resolve, reject) => {
       if (this.channel) {
         resolve(this.channel)
         // console.log('获取消息队列通道成功')
@@ -45,17 +45,17 @@ class IMSink {
       })
     })
   }
-  public static async subscribe (topic, callback) {
+  public static async subscribe (topic: string, callback: (obj: any) => void) {
     return new Promise((resolve, reject) => {
       this.channel.assertExchange('micro', 'topic', { durable: false })
       this.channel.assertQueue('test2', { durable: false }, (err, q) => {
         if (err) {
           reject(err)
-          log.silly('绑定消息队列失败,无法完成消息的订阅')
+          log.silly('','绑定消息队列失败,无法完成消息的订阅')
           return
         }
         this.channel.bindQueue(q.queue, 'micro', topic)
-        this.channel.consume(q.queue, (msg) => {
+        this.channel.consume(q.queue, (msg: any) => {
           const obj = JSON.parse(msg.content.toString())
           callback(obj)
         }, { noAck: true })

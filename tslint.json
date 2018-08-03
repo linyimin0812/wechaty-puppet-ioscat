@@ -1,5 +1,10 @@
 {
   "extends": ["tslint:recommended", "tslint-config-standard"],
+  "cliOptions": {
+    "exclude": [
+      "src/api.ts"
+    ]
+  },
   "rules": {
     "interface-name": [true, "never-prefix"],
     "trailing-comma": true,

@@ -1,9 +1,7 @@
-import { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } from "constants";
-
 
 /**
-  type	integer
-  文本,   1
+ * type	integer
+ * 文本,   1
   语音, 2
   图片, 3
   视频, 4
@@ -21,22 +19,21 @@ import { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } from "constants";
  */
 export enum IosCatMessageType {
   Text              = 1,
-  Voice             = 2,  
+  Voice             = 2,
   Image             = 3,
-  Video             = 4, 
+  Video             = 4,
   ShareCard         = 5,
   Link              = 6,
   LuckyMoney        = 7,
   Transfer          = 8,
   Location          = 11,
-  FriendRequest     = 12, 
+  FriendRequest     = 12,
   Animation         = 13,
   VoiceChat         = 14,
   VideoChat         = 15,
   Template          = 18,
   Notify            = 10000
 }
-
 
 export interface IoscatMessageRawPayload {
 
@@ -180,57 +177,56 @@ export interface IosCatRoomMemberRawPayload {
   /**
     * 系统分配ID
     */
-   id: number;
+  id: number
    /**
    * 系统分配联系人ID
    */
-   contactID: number;
+  contactID: number
    /**
    * 平台uid
    */
-   platformUid: string;
+  platformUid: string
    /**
    * 平台自定义ID
    */
-   customID?: string;
+  customID?: string
    /**
    * 系统分配群ID
    */
-   gid: number;
+  gid: number
    /**
    * 平台群ID
    */
-   platformGid: string;
+  platformGid: string
    /**
    * 成员别名
    */
-   alias?: string;
+  alias?: string
    /**
    * 成员来源
    */
-   source?: string;
+  source?: string
    /**
    * 服务id
    */
-   serviceID: number;
+  serviceID: number
    /**
    * 信息是否完整记录
    */
-   loaded?: number;
+  loaded?: number
    /**
    * 扩展字段
    */
-   extra?: string;
+  extra?: string
    /**
    * 标签
    */
-   tags?: string;
+  tags?: string
    /**
    * 数据库记录创建时间
    */
-   ctime?: number;
+  ctime?: number
 }
-
 
 export interface IosCatRoomRawPayload {
   // {
@@ -249,74 +245,74 @@ export interface IosCatRoomRawPayload {
   /**
     * 系统分配群ID
     */
-   id: number,
+  id: number,
    /**
    * 系统分配群主联系人ID
    */
-   ownerContactID?: number,
+  ownerContactID?: number,
    /**
    * 群主平台ID
    */
-   ownerPlatformUid: string,
+  ownerPlatformUid: string,
    /**
    * 群主自定义ID
    */
-   ownerCustomID?: string,
+  ownerCustomID?: string,
    /**
    * 运营号系统分配联系人ID
    */
-   profileContactID?: number,
+  profileContactID?: number,
    /**
    * 运营号平台Uid
    */
-   profilePlatformUid: string,
+  profilePlatformUid: string,
    /**
    * 运营号平台自定义ID
    */
-   profileCustomID?: string,
+  profileCustomID?: string,
    /**
    * 群ID
    */
-   platformGid: string,
+  platformGid: string,
    /**
    * 群名称
    */
-   name: string,
+  name: string,
    /**
    * 群头像
    */
-   avatar: string,
+  avatar: string,
    /**
    * 群公告
    */
-   signature: string,
+  signature: string,
    /**
    * 群二维码
    */
-   qrcode: string,
+  qrcode: string,
    /**
    * 二维码生成时间
    */
-   qrcodeGenerateTime: number,
+  qrcodeGenerateTime: number,
    /**
    * 录入系统时间
    */
-   ctime: number,
+  ctime: number,
    /**
    * 群成员数量
    */
-   memberCount: number,
+  memberCount: number,
    /**
    * 服务id
    */
-   serviceID: number,
+  serviceID: number,
    /**
    * 扩展字段
    */
-   extra?: string,
+  extra?: string,
    /**
    * 标签
    */
-   tags?: string,
-  memberIdList?             :string[]     // 群成员的ID
+  tags?: string,
+  memberIdList?             : string[]     // 群成员的ID
 }

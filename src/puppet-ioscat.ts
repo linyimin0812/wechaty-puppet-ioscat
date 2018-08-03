@@ -69,7 +69,7 @@ import {
   PBIMSetGroupDescReq,
   PBIMSetGroupNameReq,
   RelationApi
-} from './api'
+}                               from '../generated/api'
 
 import { IosCatManager } from './ioscat-manager'
 

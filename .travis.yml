@@ -1,7 +1,11 @@
+sudo: required
+services:
+  - docker
+
 language: node_js
 node_js:
-  - 10
-  - 9
+  - "10"
+  - "9"
 
 os:
   - linux
@@ -14,6 +18,7 @@ script:
   - node --version
   - npm --version
   - echo "Testing Started ..."
+  - npm run generate
   - npm test
   - echo "Testing Finished."
 
@@ -49,12 +54,6 @@ jobs:
           all_branches: true
 
 notifications:
-  webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/41a19fbf1d54a04e5217
-    on_success: always  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: never     # options: [always|never|change] default: always
   email:
     on_success: change
     on_failure: change

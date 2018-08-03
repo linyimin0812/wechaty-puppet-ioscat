@@ -23,7 +23,7 @@ import {
   GroupApi,
   GroupMemberApi,
   RelationApi,
-}                   from '../generated/api'
+} from '../generated/api'
 
 import { PuppetOptions } from 'wechaty-puppet'
 
@@ -94,6 +94,10 @@ export class IosCatManager {
       log.error(err)
     }
 
+    if (! this.cacheRoomMemberRawPayload || !this.cacheContactRawPayload
+    || !this.cacheRoomRawPayload) {
+      throw new Error('cache not exist')
+    }
     const roomMemberTotalNum = [...this.cacheRoomMemberRawPayload.values()].reduce(
       (accuVal, currVal) => {
         return accuVal + Object.keys(currVal).length
@@ -292,7 +296,11 @@ export class IosCatManager {
     }
 
     if (this.cacheRoomRawPayload.has(id)) {
-      return this.cacheRoomRawPayload.get(id)
+      const roomRawPayload = this.cacheRoomRawPayload.get(id)
+      if (! roomRawPayload) {
+        throw new Error('room id not exist')
+      }
+      return roomRawPayload
     }
 
     // room is not exist in cache, get it from infrastructure API
@@ -327,7 +335,11 @@ export class IosCatManager {
       throw new Error('cache not init')
     }
     if (this.cacheContactRawPayload.has(contactId)) {
-      return this.cacheContactRawPayload.get(contactId)
+      const contactPayload = this.cacheContactRawPayload.get(contactId)
+      if (! contactPayload) {
+        throw new Error('contact id not exists')
+      }
+      return contactPayload
     }
     const response = await this.CONTACT_API.imContactRetrieveByPlatformUidGet(CONSTANT.serviceID, contactId)
     if (response.body.code === 0 && response.body.data) {

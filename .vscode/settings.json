@@ -1,13 +1,12 @@
 {
-  "typescript.tsdk": "./node_modules/typescript/lib"
-  , "update.channel": "none"
-, "files.exclude": {
-    "dist/": true
-  , "doc/": true
-  , "node_modules/": true
-  , "package/": true
-}
-, "alignment": {
+    "typescript.tsdk": "./node_modules/typescript/lib"
+  , "files.exclude": {
+      "dist/": true
+    , "doc/": true
+    , "node_modules/": true
+    , "package/": true
+  }
+  , "alignment": {
       "operatorPadding": "right"
     , "indentBase":      "firstline"
     , "surroundSpace":   {

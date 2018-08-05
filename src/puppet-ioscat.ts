@@ -116,6 +116,7 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', `start()`)
 
     this.state.on('pending')
+
     // await some tasks...
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
@@ -131,12 +132,14 @@ export class PuppetIoscat extends Puppet {
     //  init cache
     await this.iosCatManager.initCache(this.id, CONSTANT.CUSTOM_ID)
 
+    // FIXME: should do this after login
     // sync roomMember, contact and room
     this.iosCatManager.syncContactsAndRooms().then(() => {
       log.silly('syncContactsAndRooms')
     }).catch(err => {
       log.error('PuppetIoscat', 'syncContactsAndRooms() %s', JSON.stringify(err))
     })
+
     // const user = this.Contact.load(this.id)
     // emit contactId
     // TODO: 验证
@@ -192,10 +195,6 @@ export class PuppetIoscat extends Puppet {
     }
 
     this.state.off('pending')
-
-    // if (this.loopTimer) {
-    //   clearInterval(this.loopTimer)
-    // }
 
     // await some taks...
     // 关闭监听消息事件

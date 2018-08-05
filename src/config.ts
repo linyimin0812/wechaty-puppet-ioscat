@@ -26,9 +26,9 @@ export const CONSTANT = {
  */
 export const enum STATUS {
   OPERATOR_REUQEST = 1,
-  CONTACT_REQUEST = 2,
+  CONTACT_REQUEST  = 2,
   FRIENDS_ACCEPTED = 3,
-  FRIENDS_DELETED = 4
+  FRIENDS_DELETED  = 4
 
 }
 

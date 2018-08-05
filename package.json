@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-ioscat",
-  "version": "0.2.15",
+  "version": "0.4.2",
   "description": "Puppet Ios Cat for Wechaty",
   "main": "dist/src/index.js",
   "directories": {
@@ -14,6 +14,7 @@
   "scripts": {
     "clean": "shx rm -fr dist/* generated/*",
     "dist": "tsc && cp -Rav generated/ dist/",
+    "example": "ts-node examples/test.ts",
     "generate": "bash -x scripts/generate.sh",
     "pack": "npm pack",
     "lint": "npm run lint:ts && npm run lint:md",

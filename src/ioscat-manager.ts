@@ -206,6 +206,7 @@ export class IosCatManager {
       const response = await this.GROUP_API.imGroupListGroupGet(CONSTANT.serviceID, this.options.token || ioscatToken(),
         CONSTANT.NULL, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
       const roomList = response.body.data.content
+      log.silly('PuppetIosCatManager', `syncContactsAndRooms(), length %s`, this.options.token)
       // if not rooms exist, the result roomList will be []
       if (roomList && roomList.length) {
         for (const room of roomList) {
@@ -213,6 +214,7 @@ export class IosCatManager {
           const roomRawPayload: IosCatRoomRawPayload = room as any
           const roomId = roomRawPayload.platformGid
           this.cacheRoomRawPayload.set(roomId, roomRawPayload)
+          this.roomMemberRawpayload(room.platformGid)
         }
       } else {
         throw new Error(`${this.options.token || ioscatToken()} has not room`)
@@ -327,7 +329,29 @@ export class IosCatManager {
 
   public async roomMemberRawpayload (roomId: string): Promise<{ [contactId: string]: IosCatRoomMemberRawPayload }> {
     log.verbose('PuppetIosCatManager', 'roomMemberRawPayload(%s)', roomId)
-    return {} as any
+    if (!this.cacheRoomMemberRawPayload) {
+      throw new Error('cache not init')
+    }
+    if (this.cacheRoomMemberRawPayload.has(roomId)) {
+      const roomMemberPayload = this.cacheRoomMemberRawPayload.get(roomId)
+      if (! roomMemberPayload) {
+        throw new Error('room id not exists')
+      }
+      return roomMemberPayload
+    }
+    const response = await this.GROUP_MEMBER_API.imGroupListMemberGet(CONSTANT.serviceID, roomId,
+    CONSTANT.NAN, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
+    if (response.body.code === 0 && response.body.data) {
+      // FIXME: should not use `as any`
+      const roomMembers = response.body.data.content
+      const membersPayloads: {[key: string]: IosCatRoomMemberRawPayload} = {} as any
+      for (const member of roomMembers) {
+        membersPayloads[member.platformUid] = member
+      }
+      this.cacheRoomMemberRawPayload.set(roomId, membersPayloads)
+      return membersPayloads
+    }
+    throw new Error('contact not exist')
   }
 
   public async contactRawPayload (contactId: string): Promise<IosCatContactRawPayload> {

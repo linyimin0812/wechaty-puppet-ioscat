@@ -72,10 +72,14 @@ class IMSink {
         IMSink.channel = await this.getChannel()
       }
       // 订阅相关消息
-      await this.subscribe(topic, (msg) => {
-        // console.log(msg)
+      this.subscribe(topic, (msg) => {
+        log.silly(msg)
         this.event.emit('MESSAGE', msg)
         return
+      }).then(() => {
+        log.silly('receive message')
+      }).catch((err) => {
+        log.error('receive message error', err)
       })
     } catch (err) {
       log.error(err)

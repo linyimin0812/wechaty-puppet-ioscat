@@ -4,7 +4,7 @@ import { PuppetIoscat } from '../src/'
 import { log } from '../src/config'
 
 const puppet = new PuppetIoscat({
-  token: 'wxid_tdax1huk5hgs12',
+  token: 'xxxxxxxxxxxxx',
 })
 
 const wechaty = new Wechaty({ puppet })
@@ -15,13 +15,13 @@ wechaty.on('login', (user) => log.silly(`login: ${user}`))
     const to = msg.to()
     const room = msg.room()
     if (from) {
-      log.silly('test', 'message', from.name())
+      log.silly('test', 'from: %s', from.name())
     }
     if (to) {
-      log.silly('test', 'message', to.name())
+      log.silly('test', 'to: %s', to.name())
     }
     if (room) {
-      log.silly('test', 'message', await room.topic())
+      log.silly('test', 'message: %s', await room.topic())
     }
   })
 

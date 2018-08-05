@@ -51,8 +51,7 @@ import {
   CONSTANT,
   ioscatToken,
   log,
-  qrCodeForChatie,
-  UUID
+  qrCodeForChatie
 } from './config'
 
 import { default as IMSink } from './im-sink'
@@ -74,6 +73,9 @@ import { IosCatManager } from './ioscat-manager'
 import { IosCatEvent } from './pure-function-helper/ioscat-event'
 import { messageRawPayloadParser } from './pure-function-helper/message-raw-parser'
 
+import { roomJoinEventMessageParser } from './pure-function-helper/room-event-join-message-parser'
+
+import flatten from 'array-flatten'
 export interface MockRoomRawPayload {
   topic: string,
   memberList: string[],
@@ -99,7 +101,7 @@ export class PuppetIoscat extends Puppet {
       max: 10000,
       // length: function (n) { return n * 2},
       dispose (key: string, val: any) {
-        log.silly('PuppetPadchat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+        log.silly('PuppetIoscat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
       },
       maxAge: 1000 * 60 * 60,
     }
@@ -115,22 +117,24 @@ export class PuppetIoscat extends Puppet {
 
     this.state.on('pending')
     // await some tasks...
-    this.initEventHook()
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
-    log.silly('topic:%s', topic)
+    log.silly('topic: %s', topic)
     await IMSink.start(topic)
 
     this.state.on(true)
 
     this.id = this.options.token || ioscatToken()
 
+    this.initEventHook()
+
     //  init cache
     await this.iosCatManager.initCache(this.id, CONSTANT.CUSTOM_ID)
 
     // sync roomMember, contact and room
-    // TODO:
-    this.iosCatManager.syncContactsAndRooms().catch(err => {
+    this.iosCatManager.syncContactsAndRooms().then(() => {
+      log.silly('syncContactsAndRooms')
+    }).catch(err => {
       log.error('PuppetIoscat', 'syncContactsAndRooms() %s', JSON.stringify(err))
     })
     // const user = this.Contact.load(this.id)
@@ -141,14 +145,32 @@ export class PuppetIoscat extends Puppet {
 
   private initEventHook () {
     IMSink.event.on('MESSAGE', async (msg) => {
+      /**
+       * 0. Discard messages when not loggedin
+       */
+      if (!this.id) {
+        log.warn('PuppetIoscat', 'onPadchatMessage(%s) discarded message because puppet is not logged-in',
+        JSON.stringify(msg))
+        return
+      }
+
+      /**
+       * 1. Save message for future usage
+       */
       msg.id = cuid()
       this.cacheIoscatMessagePayload.set(msg.id, msg)
+
+      /**
+       * Check for Diffirent Message Types
+       */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
+        // room join
+
         this.emit('message', msg.id)
         return
       }
       // 掉线信息
-      if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT' && msg.payload.toUpperCase() === UUID) {
+      if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT') {
         // throw 一个error
         this.emit('error', new Error(msg.id))
         return
@@ -291,6 +313,62 @@ export class PuppetIoscat extends Puppet {
       weixin: rawPayload.customID
     }
     return payload
+  }
+
+  /**
+   * Overwrite the Puppet.contactPayload()
+   */
+  public async contactPayload (
+    contactId: string,
+  ): Promise<ContactPayload> {
+
+    try {
+      const payload = await super.contactPayload(contactId)
+      return payload
+    } catch (e) {
+      log.silly('PuppetIoscat', 'contactPayload(%s) exception: %s', contactId, e.message)
+      log.silly('PuppetIoscat', 'contactPayload(%s) get failed for %s',
+      'try load from room member data source', contactId)
+    }
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    /**
+     * Issue #1397
+     *  https://github.com/Chatie/wechaty/issues/1397#issuecomment-400962638
+     *
+     * Try to use the contact information from the room
+     * when it is not available directly
+     */
+    if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      log.silly('PuppetIoscat', 'contactPayload(%s) rawPayload not exist', contactId)
+
+      const roomList = await this.contactRoomList(contactId)
+      log.silly('PuppetIoscat', 'contactPayload(%s) found %d rooms', contactId, roomList.length)
+
+      if (roomList.length > 0) {
+        const roomId = roomList[0]
+        const roomMemberPayload = await this.roomMemberPayload(roomId, contactId)
+        if (roomMemberPayload) {
+
+          const payload: ContactPayload = {
+            avatar : roomMemberPayload.avatar,
+            gender : ContactGender.Unknown,
+            id     : roomMemberPayload.id,
+            name   : roomMemberPayload.name,
+            type   : ContactType.Personal,
+          }
+
+          this.cacheContactPayload.set(contactId, payload)
+          log.silly('PuppetIoscat', 'contactPayload(%s) cache SET', contactId)
+
+          return payload
+        }
+      }
+      throw new Error('no raw payload')
+    }
+
+    return this.contactRawPayloadParser(rawPayload)
   }
 
   /**
@@ -523,6 +601,9 @@ export class PuppetIoscat extends Puppet {
        * Give Server some time to the join message payload
        */
       await new Promise((r) => setTimeout(r, 1000))
+      if (platformGid === '') {
+        await new Promise((r) => setTimeout(r, 1000))
+      }
       await this.iosCatManager.roomRawPayload(platformGid)
       return platformGid
     }
@@ -552,7 +633,7 @@ export class PuppetIoscat extends Puppet {
     }
 
     const memberIdList = await this.iosCatManager.getRoomMemberIdList(roomId)
-    log.silly('PuppetPadchat', 'roomMemberList()=%d', memberIdList.length)
+    log.silly('PuppetIoscat', 'roomMemberList()=%d', memberIdList.length)
 
     if (memberIdList.length <= 0) {
       await this.roomPayloadDirty(roomId)
@@ -580,6 +661,26 @@ export class PuppetIoscat extends Puppet {
       name: contactPayload.name,
       roomAlias: rawPayload.alias,
     }
+  }
+
+  public async roomMemberPayloadDirty (roomId: string) {
+    log.silly('PuppetPadchat', 'roomMemberRawPayloadDirty(%s)', roomId)
+
+    if (this.iosCatManager) {
+      await this.iosCatManager.roomMemberRawPayloadDirty(roomId)
+    }
+
+    await super.roomMemberPayloadDirty(roomId)
+  }
+
+  public async roomPayloadDirty (roomId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'roomPayloadDirty(%s)', roomId)
+
+    if (this.iosCatManager) {
+      this.iosCatManager.roomRawPayloadDirty(roomId)
+    }
+
+    await super.roomPayloadDirty(roomId)
   }
 
   public async roomAnnounce (roomId: string): Promise<string>
@@ -648,6 +749,53 @@ export class PuppetIoscat extends Puppet {
   public async roomInvitationRawPayloadParser (rawPayload: any): Promise<any> {
     log.silly('roomInvitationRawPayloadParser (%o)', rawPayload)
     return {} as any
+  }
+
+  /**
+   * Look for room join event
+   */
+  protected async onIosCatMessageRoomEventJoin (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onIosCatMessageRoomEventJoin({id=%s})', rawPayload.id)
+
+    const roomJoinEvent = roomJoinEventMessageParser(rawPayload)
+
+    if (roomJoinEvent) {
+
+      const inviteeNameList = roomJoinEvent.inviteeNameList
+      const inviterName     = roomJoinEvent.inviterName
+      const roomId          = roomJoinEvent.roomId
+      log.silly('PuppetIoscat', 'onIosCatMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
+      // Because the members are new added into the room, we need to
+      // clear the cache, and reload
+      await Promise.all([
+        this.roomMemberPayloadDirty(roomId),
+        this.roomPayloadDirty(roomId)
+      ])
+      const inviteeIdList = flatten<string>(
+        await Promise.all(
+          inviteeNameList.map(
+            inviteeName => this.roomMemberSearch(roomId, inviteeName),
+          ),
+        ),
+      )
+
+      if (inviteeIdList.length < 1) {
+        throw new Error('inviteeIdList not found')
+      }
+
+      const inviterIdList = await this.roomMemberSearch(roomId, inviterName)
+
+      if (inviterIdList.length < 1) {
+        throw new Error('no inviterId found')
+      } else if (inviterIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onPadchatMessageRoomEvent() case PadchatMesssageSys:',
+        'inviterId found more than 1, use the first one.')
+      }
+
+      const inviterId = inviterIdList[0]
+
+      this.emit('room-join', roomId, inviteeIdList,  inviterId)
+    }
   }
 
 }

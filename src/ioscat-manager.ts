@@ -214,7 +214,7 @@ export class IosCatManager {
           const roomRawPayload: IosCatRoomRawPayload = room as any
           const roomId = roomRawPayload.platformGid
           this.cacheRoomRawPayload.set(roomId, roomRawPayload)
-          this.roomMemberRawpayload(room.platformGid)
+          await this.roomMemberRawpayload(room.platformGid)
         }
       } else {
         throw new Error(`${this.options.token || ioscatToken()} has not room`)

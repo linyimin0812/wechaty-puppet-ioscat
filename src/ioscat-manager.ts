@@ -225,7 +225,7 @@ export class IosCatManager {
        */
       let page = 1
       const platformUid = this.options.token || ioscatToken()
-      const contactIDs = new Array<number>()
+      const platformUids = new Array<string>()
       while (true) {
         const relationPageBody = (await this.RELATION_API.imRelationPageGet(CONSTANT.serviceID,
           platformUid, CONSTANT.NULL, STATUS.FRIENDS_ACCEPTED, CONSTANT.NAN, page, CONSTANT.LIMIT, CONSTANT.NAN)).body
@@ -235,7 +235,7 @@ export class IosCatManager {
             break
           }
           for (const contact of relationPageBody.data.content) {
-            contactIDs.push(contact.contactID)
+            platformUids.push(contact.platformUid)
           }
           // get next page contacts's id
           page += 1
@@ -244,19 +244,30 @@ export class IosCatManager {
         }
       }
       // use IDs to get all contacts's detail infomation
-      const body = (await this.CONTACT_API.imContactRetrieveByIDsGet(contactIDs)).body
-
-      if (body.code === 0) {
-        for (const contact of body.data) {
-          // FIXME: should not use `as any`
-          this.cacheContactRawPayload.set(contact.platformUid, contact as any)
+      try {
+        const results = await Promise.all(
+          platformUids.map(
+            value => this.CONTACT_API.imContactRetrieveByPlatformUidGet(CONSTANT.serviceID, value),
+          ),
+        )
+        for (const result of results) {
+          const body = result.body
+          if (body.code === 0) {
+            // FIXME: should not use `as any`
+            this.cacheContactRawPayload.set(body.data.platformUid, body.data as any)
+            log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
+          } else {
+            throw new Error(`There is wrong with base API: ${body.msg}`)
+          }
         }
+        log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
+            this.cacheContactRawPayload.size,
+            this.cacheRoomRawPayload.size,
+          )
+      } catch (err) {
+        log.error(err)
       }
-      log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
-        this.cacheContactRawPayload.size,
-        this.cacheRoomRawPayload.size,
-      )
-      log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
+
     } else {
       throw new Error('id is neither room nor contact')
     }

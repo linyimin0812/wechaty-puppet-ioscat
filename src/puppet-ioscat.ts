@@ -524,6 +524,10 @@ export class PuppetIoscat extends Puppet {
 
     const body = (await this.API.imApiDeleteGroupMembersPost(requestBody)).body
     if (body.code === 0) {
+      await Promise.all([
+        this.roomMemberPayloadDirty(roomId),
+        this.roomPayloadDirty(roomId)
+      ])
       log.info('PuppetIosCat', 'roomDel success')
     } else {
       log.info('PuppetIosCat', 'roomDel failed')
@@ -587,6 +591,9 @@ export class PuppetIoscat extends Puppet {
     }
     const body = (await this.API.imApiSetGroupNamePost(requestBody)).body
     if (body.code === 0) {
+      await Promise.all([
+        this.roomPayloadDirty(roomId)
+      ])
       log.silly('PuppetIosCat', 'roomTopic(%s, %s)', roomId, topic)
       return
     }
@@ -781,6 +788,7 @@ export class PuppetIoscat extends Puppet {
       const inviterName     = roomJoinEvent.inviterName
       const roomId          = roomJoinEvent.roomId
       log.silly('PuppetIoscat', 'onIosCatMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
+      const roomPayload = await this.iosCatManager.roomRawPayload(roomId)
       // Because the members are new added into the room, we need to
       // clear the cache, and reload
       await Promise.all([
@@ -811,6 +819,8 @@ export class PuppetIoscat extends Puppet {
       const inviterId = inviterIdList[0]
 
       this.emit('room-join', roomId, inviteeIdList,  inviterId)
+      // To judge whether the room is just created or not
+      IosCatEvent.emit('room-create', roomId, roomPayload.name)
     }
   }
 

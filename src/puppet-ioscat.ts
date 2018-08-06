@@ -43,8 +43,9 @@ import {
 import {
   IosCatContactRawPayload,
   IoscatMessageRawPayload,
+  IosCatMessageType,
   IosCatRoomMemberRawPayload,
-  IosCatRoomRawPayload
+  IosCatRoomRawPayload,
 } from './ioscat-schemas'
 
 import {
@@ -74,6 +75,8 @@ import { IosCatEvent } from './pure-function-helper/ioscat-event'
 import { messageRawPayloadParser } from './pure-function-helper/message-raw-parser'
 
 import { roomJoinEventMessageParser } from './pure-function-helper/room-event-join-message-parser'
+import { roomLeaveEventMessageParser } from './pure-function-helper/room-event-leave-message-parser'
+import { roomTopicEventMessageParser } from './pure-function-helper/room-event-topic-message-parser'
 
 import flatten from 'array-flatten'
 export interface MockRoomRawPayload {
@@ -120,7 +123,7 @@ export class PuppetIoscat extends Puppet {
     // await some tasks...
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
-    log.silly('topic: %s', topic)
+    log.silly('topic: ', topic)
     await IMSink.start(topic)
 
     this.state.on(true)
@@ -135,7 +138,7 @@ export class PuppetIoscat extends Puppet {
     // FIXME: should do this after login
     // sync roomMember, contact and room
     this.iosCatManager.syncContactsAndRooms().then(() => {
-      log.silly('syncContactsAndRooms')
+      log.silly('syncContactsAndRooms done')
     }).catch(err => {
       log.error('PuppetIoscat', 'syncContactsAndRooms() %s', JSON.stringify(err))
     })
@@ -147,7 +150,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   private initEventHook () {
-    IMSink.event.on('MESSAGE', async (msg) => {
+    IMSink.event.on('MESSAGE', async (msg: IoscatMessageRawPayload) => {
       /**
        * 0. Discard messages when not loggedin
        */
@@ -167,9 +170,23 @@ export class PuppetIoscat extends Puppet {
        * Check for Diffirent Message Types
        */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
-        // room join
-
-        this.emit('message', msg.id)
+        switch (msg.payload.messageType) {
+          case IosCatMessageType.Notify: {
+            await Promise.all([
+              this.onIosCatMessageRoomEventJoin(msg),
+              this.onIoscatMessageRoomEventLeave(msg),
+              this.onIoscatMessageRoomEventTopic(msg),
+            ])
+            break
+          }
+          case IosCatMessageType.Text:
+          case IosCatMessageType.Video:
+          case IosCatMessageType.Image:
+          case IosCatMessageType.Link:
+          default:
+            this.emit('message', msg.id)
+            break
+        }
         return
       }
       // 掉线信息
@@ -663,7 +680,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async roomMemberPayloadDirty (roomId: string) {
-    log.silly('PuppetPadchat', 'roomMemberRawPayloadDirty(%s)', roomId)
+    log.silly('PuppetIoscat', 'roomMemberRawPayloadDirty(%s)', roomId)
 
     if (this.iosCatManager) {
       await this.iosCatManager.roomMemberRawPayloadDirty(roomId)
@@ -673,7 +690,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async roomPayloadDirty (roomId: string): Promise<void> {
-    log.verbose('PuppetPadchat', 'roomPayloadDirty(%s)', roomId)
+    log.verbose('PuppetIoscat', 'roomPayloadDirty(%s)', roomId)
 
     if (this.iosCatManager) {
       this.iosCatManager.roomRawPayloadDirty(roomId)
@@ -797,6 +814,86 @@ export class PuppetIoscat extends Puppet {
     }
   }
 
+  /**
+   * Look for room leave event
+   */
+  protected async onIoscatMessageRoomEventLeave (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onPadchatMessageRoomEventLeave({id=%s})', rawPayload.id)
+
+    const roomLeaveEvent = roomLeaveEventMessageParser(rawPayload)
+
+    if (roomLeaveEvent) {
+      const leaverNameList = roomLeaveEvent.leaverNameList
+      const removerName    = roomLeaveEvent.removerName
+      const roomId         = roomLeaveEvent.roomId
+      log.silly('PuppetIoscat', 'onIoscatMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
+
+      const leaverIdList = flatten<string>(
+        await Promise.all(
+          leaverNameList.map(
+            leaverName => this.roomMemberSearch(roomId, leaverName),
+          ),
+        ),
+      )
+      const removerIdList = await this.roomMemberSearch(roomId, removerName)
+      if (removerIdList.length < 1) {
+        throw new Error('no removerId found')
+      } else if (removerIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onPadchatMessage() case PadchatMesssageSys: removerId found more than 1',
+        'use the first one.')
+      }
+      const removerId = removerIdList[0]
+
+      if (!this.iosCatManager) {
+        throw new Error('no padchatManager')
+      }
+
+      /**
+       * Set Cache Dirty
+       */
+      await this.roomMemberPayloadDirty(roomId)
+      await this.roomPayloadDirty(roomId)
+
+      this.emit('room-leave',  roomId, leaverIdList, removerId)
+    }
+  }
+  /**
+   * Look for room topic event
+   */
+  protected async onIoscatMessageRoomEventTopic (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onIoscatMessageRoomEventTopic({id=%s})', rawPayload.id)
+
+    const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
+
+    if (roomTopicEvent) {
+      const changerName = roomTopicEvent.changerName
+      const newTopic    = roomTopicEvent.topic
+      const roomId      = roomTopicEvent.roomId
+      log.silly('PuppetIoscat', 'onIoscatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
+
+      const roomOldPayload = await this.roomPayload(roomId)
+      const oldTopic       = roomOldPayload.topic
+
+      const changerIdList = await this.roomMemberSearch(roomId, changerName)
+      if (changerIdList.length < 1) {
+        throw new Error('no changerId found')
+      } else if (changerIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onIoscatMessage() case IoscatMesssageSys:changerId found more than 1,',
+        'use the first one.')
+      }
+      const changerId = changerIdList[0]
+
+      if (!this.iosCatManager) {
+        throw new Error('no padchatManager')
+      }
+      /**
+       * Set Cache Dirty
+       */
+      await this.roomPayloadDirty(roomId)
+
+      this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
+    }
+  }
 }
 
 export default PuppetIoscat

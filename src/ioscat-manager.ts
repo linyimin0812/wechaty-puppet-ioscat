@@ -255,7 +255,6 @@ export class IosCatManager {
           if (body.code === 0) {
             // FIXME: should not use `as any`
             this.cacheContactRawPayload.set(body.data.platformUid, body.data as any)
-            log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
           } else {
             throw new Error(`There is wrong with base API: ${body.msg}`)
           }
@@ -264,8 +263,9 @@ export class IosCatManager {
             this.cacheContactRawPayload.size,
             this.cacheRoomRawPayload.size,
           )
+        log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
       } catch (err) {
-        log.error(err)
+        log.error('ioscat-manager', 'syncContactsAndRooms: %s', JSON.stringify(err))
       }
 
     } else {

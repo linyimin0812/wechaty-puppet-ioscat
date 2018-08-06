@@ -5,10 +5,10 @@ services:
 language: node_js
 node_js:
   - "10"
-  - "9"
 
 os:
   - linux
+  - osx
 
 cache:
   directories:

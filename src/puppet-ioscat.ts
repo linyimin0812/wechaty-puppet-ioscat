@@ -135,14 +135,13 @@ export class PuppetIoscat extends Puppet {
     //  init cache
     await this.iosCatManager.initCache(this.id)
 
-    // FIXME: should do this after login
-    // sync roomMember, contact and room
-    await this.iosCatManager.syncContactsAndRooms()
-
     // const user = this.Contact.load(this.id)
     // emit contactId
     // TODO: 验证
     this.emit('login', this.id)
+    // FIXME: should do this after login
+    // sync roomMember, contact and room
+    this.iosCatManager.syncContactsAndRooms().then(() => { return }).catch(() => { return })
   }
 
   private initEventHook () {

@@ -51,9 +51,8 @@ export class IosCatManager {
 
   public async initCache (
     token: string,
-    userId: string,
   ): Promise<void> {
-    log.verbose('PuppetIoscat', 'initCache(%s, %s)', token, userId)
+    log.verbose('PuppetIoscat', 'initCache(%s)', token)
 
     if (this.cacheContactRawPayload
       || this.cacheRoomMemberRawPayload
@@ -69,8 +68,6 @@ export class IosCatManager {
       'puppet-ioscat-cache',
       path.sep,
       token,
-      path.sep,
-      userId,
     )
 
     const baseDirExist = await fs.pathExists(baseDir)
@@ -78,7 +75,7 @@ export class IosCatManager {
     if (!baseDirExist) {
       await fs.mkdirp(baseDir)
     }
-    log.silly('PuppetIoscat', 'initCache(%s, %s)', token, userId)
+    log.silly('PuppetIoscat', 'initCache(%s)', token)
 
     try {
       this.cacheContactRawPayload = new FlashStoreSync(path.join(baseDir, 'contact-raw-payload'))

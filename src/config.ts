@@ -12,7 +12,6 @@ export function qrCodeForChatie (): FileBox {
 
 // export const UUID = 'C08E89B931699B60C0551FA6D4A4343C55DE183D'
 export const CONSTANT = {
-  CUSTOM_ID: 'xxxxxx',
   G2G: 2,
   LIMIT: 1000,
   NAN: 0,

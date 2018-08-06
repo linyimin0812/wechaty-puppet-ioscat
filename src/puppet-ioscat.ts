@@ -133,15 +133,11 @@ export class PuppetIoscat extends Puppet {
     this.initEventHook()
 
     //  init cache
-    await this.iosCatManager.initCache(this.id, CONSTANT.CUSTOM_ID)
+    await this.iosCatManager.initCache(this.id)
 
     // FIXME: should do this after login
     // sync roomMember, contact and room
-    this.iosCatManager.syncContactsAndRooms().then(() => {
-      log.silly('syncContactsAndRooms done')
-    }).catch(err => {
-      log.error('PuppetIoscat', 'syncContactsAndRooms() %s', JSON.stringify(err))
-    })
+    await this.iosCatManager.syncContactsAndRooms()
 
     // const user = this.Contact.load(this.id)
     // emit contactId
@@ -215,12 +211,7 @@ export class PuppetIoscat extends Puppet {
 
     // await some taks...
     // 关闭监听消息事件
-    IMSink.getConn().then((CONN: any) => {
-      CONN.close()
-      log.silly('Amqp链接关闭')
-    }).catch((err) => {
-      log.error('IMSink get connection failed', err)
-    })
+    await IMSink.close()
 
     // release cache
     await this.iosCatManager.releaseCache()

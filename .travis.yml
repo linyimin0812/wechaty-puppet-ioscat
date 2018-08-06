@@ -13,14 +13,6 @@ cache:
   directories:
     - node_modules
 
-script:
-  - node --version
-  - npm --version
-  - echo "Testing Started ..."
-  - npm run generate
-  - npm test
-  - echo "Testing Finished."
-
 stages:
   - test
   - pack
@@ -29,6 +21,15 @@ stages:
 
 jobs:
   include:
+    - stage: test
+      script:
+        - node --version
+        - npm --version
+        - echo "Testing Started ..."
+        - npm run generate
+        - npm test
+        - echo "Testing Finished."
+
     - stage: pack
       script:
         - echo "NPM Pack Testing Started ..."

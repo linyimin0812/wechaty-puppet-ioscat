@@ -458,9 +458,10 @@ export class IosCatManager {
     data.serviceID = CONSTANT.serviceID,
     data.sessionType = CONSTANT.P2P
     data.toCustomID = data.fromCustomID = this.options.token || ioscatToken()
+    this.API.imApiSendMessagePost(data)
     data.content = CONSTANT.MESSAGE
-    this.timer = setInterval(() => {
-      this.API.imApiSendMessagePost(data)
-    }, 50 * 1000)
+    setInterval(async () => {
+      await this.API.imApiSendMessagePost(data)
+    }, 20 * 1000)
   }
 }

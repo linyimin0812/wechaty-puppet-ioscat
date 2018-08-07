@@ -130,7 +130,7 @@ export class PuppetIoscat extends Puppet {
 
     this.id = this.options.token || ioscatToken()
 
-    this.startWatchdog()
+    await this.startWatchdog()
 
     this.initEventHook()
 
@@ -143,7 +143,9 @@ export class PuppetIoscat extends Puppet {
     this.emit('login', this.id)
     // FIXME: should do this after login
     // sync roomMember, contact and room
-    this.iosCatManager.syncContactsAndRooms().then(() => { return }).catch(() => { return })
+    this.iosCatManager.syncContactsAndRooms().catch(err => {
+      log.error('PuppetIoscat', 'start() err: %s', JSON.stringify(err))
+    })
   }
 
   private initEventHook () {
@@ -206,7 +208,7 @@ export class PuppetIoscat extends Puppet {
     })
   }
 
-  public startWatchdog (): void {
+  public async startWatchdog () {
     log.verbose('PuppetIoscat', 'startWatchdog()')
 
     if (!this.iosCatManager) {
@@ -233,8 +235,7 @@ export class PuppetIoscat extends Puppet {
     })
 
     // send message `periodic_message`
-    this.iosCatManager.checkOnline()
-    .catch(() => { return })
+    await this.iosCatManager.checkOnline()
   }
   public async stop (): Promise<void> {
     log.verbose('PuppetIoscat', 'stop()')
@@ -251,9 +252,16 @@ export class PuppetIoscat extends Puppet {
     // 关闭监听消息事件
     await IMSink.close()
 
-    // release cache
-    await this.iosCatManager.releaseCache()
+    // remove allListener
+    IosCatEvent.removeAllListeners()
 
+    // remove all timer
+    if (!this.iosCatManager.timer) {
+      log.silly('PuppetIoscat', 'stop() ')
+    } else {
+      clearInterval(this.iosCatManager.timer)
+    }
+    await this.logout()
     this.state.off(true)
   }
 
@@ -289,7 +297,6 @@ export class PuppetIoscat extends Puppet {
     throw new Error('not supported')
   }
 
-  // TODO: test
   public async contactList (): Promise<string[]> {
     log.verbose('PuppetIoscat', 'contactList()')
     if (!this.iosCatManager) {
@@ -575,7 +582,6 @@ export class PuppetIoscat extends Puppet {
     return qrCodeForChatie()
   }
 
-  // TODO: test
   public async roomAdd (
     roomId: string,
     contactId: string,
@@ -599,7 +605,6 @@ export class PuppetIoscat extends Puppet {
 
   public async roomTopic (roomId: string): Promise<string>
   public async roomTopic (roomId: string, topic: string): Promise<void>
-  // TODO: test
   public async roomTopic (
     roomId: string,
     topic?: string,
@@ -628,7 +633,6 @@ export class PuppetIoscat extends Puppet {
     }
     throw new Error('change room\'s topic error.')
   }
-  // TODO: emit room-create event and test
   public async roomCreate (
     contactIdList: string[],
     topic: string,
@@ -668,7 +672,6 @@ export class PuppetIoscat extends Puppet {
 
   }
 
-  // TODO: test
   public async roomQrcode (roomId: string): Promise<string> {
     if (!this.iosCatManager) {
       throw new Error('no ioscat manager')
@@ -677,7 +680,6 @@ export class PuppetIoscat extends Puppet {
     return room.qrcode || ''
   }
 
-  // TODO: test
   public async roomMemberList (roomId: string): Promise<string[]> {
     log.verbose('PuppetIoscat', 'roommemberList(%s)', roomId)
     if (!this.iosCatManager) {

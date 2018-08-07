@@ -49,6 +49,7 @@ export class IosCatManager {
   private RELATION_API: RelationApi = new RelationApi()
   private CONTACT_API: ContactApi   = new ContactApi()
   public dog: Watchdog
+  public timer: NodeJS.Timer | undefined        // `undefined` stands for the initail value
   constructor (
     public options: PuppetOptions = {},
     timeout: number = 60 * 1000
@@ -270,6 +271,7 @@ export class IosCatManager {
         log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
       } catch (err) {
         log.error('ioscat-manager', 'syncContactsAndRooms: %s', JSON.stringify(err))
+        return
       }
 
     } else {
@@ -457,7 +459,7 @@ export class IosCatManager {
     data.sessionType = CONSTANT.P2P
     data.toCustomID = data.fromCustomID = this.options.token || ioscatToken()
     data.content = CONSTANT.MESSAGE
-    setInterval(() => {
+    this.timer = setInterval(() => {
       this.API.imApiSendMessagePost(data)
     }, 50 * 1000)
   }

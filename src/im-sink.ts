@@ -64,6 +64,8 @@ class IMSink {
       return log.error('connection is null, dont need to close')
     }
     await IMSink.connection.close()
+    // remove allListener
+    IMSink.event.removeAllListeners()
   }
 }
 

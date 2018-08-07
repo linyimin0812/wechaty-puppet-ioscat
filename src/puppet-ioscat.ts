@@ -130,6 +130,8 @@ export class PuppetIoscat extends Puppet {
 
     this.id = this.options.token || ioscatToken()
 
+    this.startWatchdog()
+
     this.initEventHook()
 
     //  init cache
@@ -165,6 +167,12 @@ export class PuppetIoscat extends Puppet {
        * Check for Diffirent Message Types
        */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
+        this.emit('message', msg.id)
+
+        // if the message is period message, feed the dog
+        if (msg.payload.content === CONSTANT.MESSAGE) {
+          this.iosCatManager.dog.feed({ data: 'work' })
+        }
         switch (msg.payload.messageType) {
           case IosCatMessageType.Notify: {
             await Promise.all([
@@ -179,7 +187,7 @@ export class PuppetIoscat extends Puppet {
           case IosCatMessageType.Image:
           case IosCatMessageType.Link:
           default:
-            this.emit('message', msg.id)
+            // this.emit('message', msg.id)
             break
         }
         return
@@ -196,6 +204,36 @@ export class PuppetIoscat extends Puppet {
         return
       }
     })
+  }
+
+  public startWatchdog (): void {
+    log.verbose('PuppetIoscat', 'startWatchdog()')
+
+    if (!this.iosCatManager) {
+      throw new Error('no ioscat manager')
+    }
+
+    /**
+     * Use ioscat-event heartbeat to feed dog
+     */
+    IosCatEvent.on('heartbeat', (data: string) => {
+      log.silly('PuppetIoscat', 'startWatchdog() IosCatEvent.on(heartbeat)')
+      this.emit('watchdog', {
+        data,
+      })
+    })
+
+    IosCatEvent.on('broken', () => {
+      this.emit('error', new Error('Cant receive message event'))
+    })
+
+    this.emit('watchdog', {
+      data: 'inited',
+      type: 'startWatchdog()',
+    })
+
+    // send message `periodic_message`
+    this.iosCatManager.checkOnline()
   }
   public async stop (): Promise<void> {
     log.verbose('PuppetIoscat', 'stop()')
@@ -864,6 +902,8 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', 'onIoscatMessageRoomEventTopic({id=%s})', rawPayload.id)
 
     const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
+
+    log.silly(JSON.stringify(rawPayload, null, 2))
 
     if (roomTopicEvent) {
       const changerName = roomTopicEvent.changerName

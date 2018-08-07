@@ -19,13 +19,18 @@ import {
 } from './config'
 
 import {
+  ApiApi,
   ContactApi,
   GroupApi,
   GroupMemberApi,
+  PBIMSendMessageReq,
   RelationApi,
 } from '../generated/api'
 
 import { PuppetOptions } from 'wechaty-puppet'
+
+import { Watchdog } from 'watchdog'
+import { IosCatEvent } from './pure-function-helper/ioscat-event'
 
 export class IosCatManager {
   // persistent store
@@ -38,15 +43,17 @@ export class IosCatManager {
   /**
    * swagger generator api
    */
+  private API                       = new ApiApi()
   private GROUP_API                 = new GroupApi()
   private GROUP_MEMBER_API          = new GroupMemberApi()
   private RELATION_API: RelationApi = new RelationApi()
   private CONTACT_API: ContactApi   = new ContactApi()
-
+  public dog: Watchdog
   constructor (
     public options: PuppetOptions = {},
+    timeout: number = 60 * 1000
   ) {
-
+    this.dog = new Watchdog(timeout)
   }
 
   public async initCache (
@@ -429,5 +436,29 @@ export class IosCatManager {
     // console.log('memberRawPayloadDict:', memberRawPayloadDict)
     log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
     return memberIdList
+  }
+
+  public async checkOnline () {
+    log.silly('IoscatMnager', 'checkOnline()')
+    this.dog.on('feed', (food) => {
+      IosCatEvent.emit('heartbeat', food.data)
+      log.silly('checkOnline()', 'feed')
+    })
+
+    this.dog.on('reset', () => {
+      // something wrong
+      IosCatEvent.emit('broken')
+    })
+
+    // send a message periodic
+
+    const data: PBIMSendMessageReq = new PBIMSendMessageReq()
+    data.serviceID = CONSTANT.serviceID,
+    data.sessionType = CONSTANT.P2P
+    data.toCustomID = data.fromCustomID = this.options.token || ioscatToken()
+    data.content = CONSTANT.MESSAGE
+    setInterval(() => {
+      this.API.imApiSendMessagePost(data)
+    }, 50 * 1000)
   }
 }

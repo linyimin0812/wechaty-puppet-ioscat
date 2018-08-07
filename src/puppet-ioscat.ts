@@ -143,9 +143,8 @@ export class PuppetIoscat extends Puppet {
     this.emit('login', this.id)
     // FIXME: should do this after login
     // sync roomMember, contact and room
-    this.iosCatManager.syncContactsAndRooms().catch(err => {
-      log.error('PuppetIoscat', 'start() err: %s', JSON.stringify(err))
-    })
+    this.syncContactsAndRoom().catch(err => log.error(err))
+    IosCatEvent.emit('sync-contacts-and-room')
   }
 
   private initEventHook () {
@@ -262,6 +261,8 @@ export class PuppetIoscat extends Puppet {
     } else {
       clearInterval(this.iosCatManager.timer)
     }
+
+    this.iosCatManager.dog.unref()
     await this.logout()
     this.state.off(true)
   }
@@ -272,12 +273,22 @@ export class PuppetIoscat extends Puppet {
     if (!this.id) {
       throw new Error('logout before login?')
     }
-
+    this.removeAllListeners()
     this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
     this.id = undefined
 
     // do the logout job --> release cache
     await this.iosCatManager.releaseCache()
+  }
+
+  public async syncContactsAndRoom () {
+    await new Promise(resolve => { setTimeout(resolve, 1000) })
+    // To be sure the user has logged
+    IosCatEvent.on('sync-contacts-and-room', () => {
+      this.iosCatManager.syncContactsAndRooms().catch(err => {
+        log.error('PuppetIoscat', 'syncContactsAndRoom(): %s', err)
+      })
+    })
   }
 
   /**

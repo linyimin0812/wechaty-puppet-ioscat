@@ -23,7 +23,7 @@ class IMSink {
       throw new Error(`IMSink getChannel() error: ${JSON.stringify(err)}`)
     }
   }
-  public static async subscribe (topic: string, callback: (obj: any) => void) {
+  public static async start (topic: string) {
     log.silly('IMSink', 'subscribe(%s)', topic)
     try {
       await IMSink.getChannel()
@@ -32,25 +32,11 @@ class IMSink {
       await IMSink.channel.bindQueue(assertQueue.queue, 'micro', topic)
       IMSink.channel.consume(assertQueue.queue, (msg: any) => {
         const obj = JSON.parse(msg.content.toString())
-        callback(obj)
+        this.event.emit('MESSAGE', obj)
       }, { noAck: true })
     } catch (err) {
       throw new Error(`subscribe message  error: ${err}`)
     }
-  }
-
-  public static async start (topic: string) {
-    // 订阅相关消息
-    IMSink.subscribe(topic, (msg) => {
-      log.silly(msg)
-      this.event.emit('MESSAGE', msg)
-      return
-    }).then(() => {
-      return
-    }).catch(err => {
-      log.error(err)
-      return
-    })
   }
 
   public static async close () {

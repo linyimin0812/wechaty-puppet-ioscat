@@ -50,4 +50,4 @@ async function start () {
 
 }
 
-start()
+start().then(() => { return }).catch(() => { return })

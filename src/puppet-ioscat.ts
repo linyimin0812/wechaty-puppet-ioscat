@@ -234,6 +234,7 @@ export class PuppetIoscat extends Puppet {
 
     // send message `periodic_message`
     this.iosCatManager.checkOnline()
+    .catch(() => { return })
   }
   public async stop (): Promise<void> {
     log.verbose('PuppetIoscat', 'stop()')

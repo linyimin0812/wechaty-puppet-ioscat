@@ -1,5 +1,3 @@
-import { toJson } from 'xml2json'
-
 import {
   PuppetRoomJoinEvent,
   YOU,
@@ -7,7 +5,6 @@ import {
 
 import {
   IoscatMessageRawPayload,
-  IosCatMessageType,
 }                         from '../ioscat-schemas'
 
 import {
@@ -19,8 +16,6 @@ import {
   splitChineseNameList,
   splitEnglishNameList,
 }                         from './split-name'
-
-import { log } from '../config'
 
 /**
  *
@@ -95,54 +90,11 @@ export function roomJoinEventMessageParser (
     return null
   }
 
-  let content = rawPayload.payload.content
+  const content = rawPayload.payload.content
 
   /**
    * when the message is a Recalled type, bot can undo the invitation
    */
-  // TODO: Recalled Type
-  if (rawPayload.payload.messageType === IosCatMessageType.Video) {
-    /**
-     * content:
-     * ```
-     * 3453262102@chatroom:
-     * <sysmsg type="delchatroommember">
-     *   ...
-     * </sysmsg>
-     * ```
-     */
-    const tryXmlText = content.replace(/^[^\n]+\n/, '')
-    interface XmlSchema {
-      sysmsg: {
-        type: 'revokemsg' | 'delchatroommember',
-        delchatroommember?: {
-          plain : string,
-          text  : string,
-        },
-        revokemsg?: {
-          replacemsg : string,
-          msgid      : string,
-          newmsgid   : string,
-          session    : string,
-        },
-      }
-    }
-    const jsonPayload = toJson(tryXmlText, { object: true }) as XmlSchema
-    try {
-      if (jsonPayload.sysmsg.type === 'delchatroommember') {
-        content = jsonPayload.sysmsg.delchatroommember!.plain
-      } else if (jsonPayload.sysmsg.type === 'revokemsg') {
-        content = jsonPayload.sysmsg.revokemsg!.replacemsg
-      } else {
-        throw new Error('unknown jsonPayload sysmsg type: ' + jsonPayload.sysmsg.type)
-      }
-    } catch (e) {
-      log.error(e)
-      log.silly('jsonPayload:', jsonPayload)
-      throw e
-    }
-  }
-
   let matchesForBotInviteOtherEn         = null as null | string[]
   let matchesForOtherInviteBotEn         = null as null | string[]
   let matchesForOtherInviteOtherEn       = null as null | string[]

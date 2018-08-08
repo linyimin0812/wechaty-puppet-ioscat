@@ -316,14 +316,13 @@ export class IosCatManager {
 
     if (this.cacheRoomRawPayload.has(id)) {
       const roomRawPayload = this.cacheRoomRawPayload.get(id)
-      if (! roomRawPayload) {
-        throw new Error('room id not exist')
+      if (roomRawPayload) {
+        return roomRawPayload
       }
-      return roomRawPayload
     }
 
     // room is not exist in cache, get it from infrastructure API
-    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.NAN, CONSTANT.serviceID, id)
+    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.serviceID, id)
     // FIXME: should not use `as any`
     const rawPayload: IosCatRoomRawPayload = response.body.data as any
 
@@ -332,7 +331,7 @@ export class IosCatManager {
       CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
     const members = listMemberResponse.body.data
     // if the room of id is not exist, the result will not involved data filed
-    if (rawPayload && (members && members.content.length > 0)/* && tryRawPayload.user_name */) {
+    if (rawPayload && (members && members.content.length > 0)) {
       const memberIdList = await members.content.map((value, index) => {
         return value.platformUid
       })
@@ -416,7 +415,7 @@ export class IosCatManager {
     roomId: string,
     dirty = false,
   ): Promise<string[]> {
-    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d)', roomId)
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%s)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited')
     }
@@ -436,7 +435,7 @@ export class IosCatManager {
     const memberIdList = Object.keys(memberRawPayloadDict)
 
     // console.log('memberRawPayloadDict:', memberRawPayloadDict)
-    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%s) length=%d', roomId, memberIdList.length)
     return memberIdList
   }
 

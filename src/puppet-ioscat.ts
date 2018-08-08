@@ -42,8 +42,8 @@ import {
 
 import {
   IosCatContactRawPayload,
+  IosCatMessage,
   IoscatMessageRawPayload,
-  IosCatMessageType,
   IosCatRoomMemberRawPayload,
   IosCatRoomRawPayload,
 } from './ioscat-schemas'
@@ -79,6 +79,8 @@ import { roomLeaveEventMessageParser } from './pure-function-helper/room-event-l
 import { roomTopicEventMessageParser } from './pure-function-helper/room-event-topic-message-parser'
 
 import flatten from 'array-flatten'
+
+import equals from 'deep-equal'
 export interface MockRoomRawPayload {
   topic: string,
   memberList: string[],
@@ -153,43 +155,44 @@ export class PuppetIoscat extends Puppet {
        * 0. Discard messages when not loggedin
        */
       if (!this.id) {
-        log.warn('PuppetIoscat', 'onPadchatMessage(%s) discarded message because puppet is not logged-in',
+        log.warn('PuppetIoscat', 'onIoscatMessage(%s) discarded message because puppet is not logged-in',
         JSON.stringify(msg))
         return
       }
 
       /**
-       * 1. Save message for future usage
+       * 1. if the message is period message, feed the dog
+       */
+      if (msg.payload.content === CONSTANT.MESSAGE) {
+        this.iosCatManager.dog.feed({ data: 'work' })
+        return
+      }
+
+      /**
+       * 2. Save message for future usage
        */
       msg.id = cuid()
       this.cacheIoscatMessagePayload.set(msg.id, msg)
 
       /**
-       * Check for Diffirent Message Types
+       * 3. Check for Diffirent Message Types
        */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
-        this.emit('message', msg.id)
-
-        // if the message is period message, feed the dog
-        if (msg.payload.content === CONSTANT.MESSAGE) {
-          this.iosCatManager.dog.feed({ data: 'work' })
+        const payloadType = {
+          messageType: msg.payload.messageType,
+          platformMsgType: msg.payload.platformMsgType,
         }
-        switch (msg.payload.messageType) {
-          case IosCatMessageType.Notify: {
-            await Promise.all([
-              this.onIosCatMessageRoomEventJoin(msg),
-              this.onIoscatMessageRoomEventLeave(msg),
-              this.onIoscatMessageRoomEventTopic(msg),
-            ])
-            break
-          }
-          case IosCatMessageType.Text:
-          case IosCatMessageType.Video:
-          case IosCatMessageType.Image:
-          case IosCatMessageType.Link:
-          default:
-            // this.emit('message', msg.id)
-            break
+
+        if (equals(IosCatMessage.RoomJoinOrLeave, payloadType)) {
+          await Promise.all([
+            this.onIosCatMessageRoomEventJoin(msg),
+            this.onIoscatMessageRoomEventLeave(msg),
+            this.onIoscatMessageRoomEventTopic(msg),
+          ])
+        } else if (equals(IosCatMessage.RoomTopic, payloadType)) {
+          await this.onIoscatMessageRoomEventTopic(msg)
+        } else {
+          this.emit('message', msg.id)
         }
         return
       }
@@ -927,8 +930,8 @@ export class PuppetIoscat extends Puppet {
       const roomId      = roomTopicEvent.roomId
       log.silly('PuppetIoscat', 'onIoscatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
 
-      const roomOldPayload = await this.roomPayload(roomId)
-      const oldTopic       = roomOldPayload.topic
+      const roomOldPayload = await this.roomRawPayload(roomId)
+      const oldTopic       = roomOldPayload.name
 
       const changerIdList = await this.roomMemberSearch(roomId, changerName)
       if (changerIdList.length < 1) {
@@ -939,14 +942,10 @@ export class PuppetIoscat extends Puppet {
       }
       const changerId = changerIdList[0]
 
-      if (!this.iosCatManager) {
-        throw new Error('no padchatManager')
-      }
       /**
        * Set Cache Dirty
        */
       await this.roomPayloadDirty(roomId)
-
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
   }

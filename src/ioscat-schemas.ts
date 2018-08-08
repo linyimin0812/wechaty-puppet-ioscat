@@ -1,4 +1,9 @@
-
+export interface IosCatMessageType {
+  [type: string]: {
+    messageType: number,
+    platformMsgType?: number,
+  }
+}
 /**
  * type	integer
  * 文本,   1
@@ -17,24 +22,26 @@
  * 模板消息, 18
  * 通知, 10000
  */
-export enum IosCatMessageType {
-  Text              = 1,
-  Voice             = 2,
-  Image             = 3,
-  Video             = 4,
-  ShareCard         = 5,
-  Link              = 6,
-  LuckyMoney        = 7,
-  Transfer          = 8,
-  Location          = 11,
-  FriendRequest     = 12,
-  Animation         = 13,
-  VoiceChat         = 14,
-  VideoChat         = 15,
-  Template          = 18,
-  Notify            = 10000
+export const IosCatMessage: IosCatMessageType = {
+  Animation         : { messageType: 13, platformMsgType: 47 },
+  File              : { messageType: 19, platformMsgType: 49 },
+  FriendRequest     : { messageType: 12 },
+  Image             : { messageType: 3, platformMsgType: 3 },
+  Link              : { messageType: 17, platformMsgType: 49 },
+  Location          : { messageType: 11, platformMsgType: 48 },
+  LuckyMoney        : { messageType: 7 },
+  Notify            : { messageType: 10000 },
+  RoomJoinOrLeave   : { messageType: 17, platformMsgType: 10002 },
+  RoomTopic         : { messageType: 10000, platformMsgType: 10000 },
+  ShareCard         : { messageType: 5, platformMsgType: 42 },
+  Template          : { messageType: 18 },
+  Text              : { messageType: 1, platformMsgType: 1 },
+  Transfer          : { messageType: 8 },
+  Video             : { messageType: 4, platformMsgType: 43 },
+  VideoChat         : { messageType: 14 },
+  Voice             : { messageType: 2, platformMsgType: 34 },
+  VoiceChat         : { messageType: 15 },
 }
-
 export interface IoscatMessageRawPayload {
 
   /** p2p message structure */

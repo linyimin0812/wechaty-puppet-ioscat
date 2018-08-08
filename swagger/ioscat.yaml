@@ -1164,10 +1164,6 @@ paths:
       description: 根据ID或平台群ID条件检索群信息
       parameters:
         - in: query
-          name: id
-          type: integer
-          description: ID
-        - in: query
           name: serviceID
           type: integer
           description: 服务ID
@@ -1175,6 +1171,10 @@ paths:
           name: platformGid
           type: string
           description: 平台群ID
+        - in: query
+          name: id
+          type: integer
+          description: ID
       tags:
         - group
       responses:

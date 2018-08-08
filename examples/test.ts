@@ -29,6 +29,19 @@ wechaty.on('login', async (user) => {
   .on('error', (err) => {
     log.error(JSON.stringify(err))
   })
+  .on('room-join', async function (this, room, inviteeList, inviter) {
+    log.info('room-join', 'room\'s name:%s, inviteeList=%s, inviter=%s',
+    await room.topic(), JSON.stringify(inviteeList), inviter.name())
+  })
+  .on('room-leave', async function (this, room, leaverList) {
+    log.info('room-leave', 'room\'s name:%s, inviteeList=%s',
+    await room.topic(), JSON.stringify(leaverList))
+  })
+  .on('room-topic', async function (this, room, newTopic, oldTopic, changer) {
+    await room.ready(true)
+    log.info('room-topic', 'room\'s new name:%s, oldName=%s, changer=%s',
+    (await room.topic()), oldTopic, changer.name())
+  })
 
 async function start () {
   await wechaty.start()

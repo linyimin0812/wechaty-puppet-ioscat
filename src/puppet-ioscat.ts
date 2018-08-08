@@ -143,8 +143,8 @@ export class PuppetIoscat extends Puppet {
     this.emit('login', this.id)
     // FIXME: should do this after login
     // sync roomMember, contact and room
-    this.syncContactsAndRoom().catch(err => log.error(err))
-    IosCatEvent.emit('sync-contacts-and-room')
+    await this.iosCatManager.syncContactsAndRooms()
+    // IosCatEvent.emit('sync-contacts-and-room')
   }
 
   private initEventHook () {
@@ -281,15 +281,16 @@ export class PuppetIoscat extends Puppet {
     await this.iosCatManager.releaseCache()
   }
 
-  public async syncContactsAndRoom () {
-    await new Promise(resolve => { setTimeout(resolve, 1000) })
-    // To be sure the user has logged
-    IosCatEvent.on('sync-contacts-and-room', () => {
-      this.iosCatManager.syncContactsAndRooms().catch(err => {
-        log.error('PuppetIoscat', 'syncContactsAndRoom(): %s', err)
-      })
-    })
-  }
+  // public async syncContactsAndRoom () {
+  //   await new Promise(resolve => { setTimeout(resolve, 1000) })
+  //   // To be sure the user has logged
+  //   log.silly('PuppetIoscat', 'event: sync-contacts-and-room')
+  //   IosCatEvent.on('sync-contacts-and-room', () => {
+  //     this.iosCatManager.syncContactsAndRooms().catch(err => {
+  //       log.error('PuppetIoscat', 'syncContactsAndRoom(): %s', err)
+  //     })
+  //   })
+  // }
 
   /**
    *

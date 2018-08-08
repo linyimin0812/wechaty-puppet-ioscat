@@ -332,7 +332,7 @@ export class IosCatManager {
       CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
     const members = listMemberResponse.body.data
     // if the room of id is not exist, the result will not involved data filed
-    if (rawPayload || (members && members.content.length > 0)/* && tryRawPayload.user_name */) {
+    if (rawPayload && (members && members.content.length > 0)/* && tryRawPayload.user_name */) {
       const memberIdList = await members.content.map((value, index) => {
         return value.platformUid
       })

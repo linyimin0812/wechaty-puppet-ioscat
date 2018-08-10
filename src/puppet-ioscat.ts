@@ -42,6 +42,7 @@ import {
 
 import {
   IosCatContactRawPayload,
+  IoscatFriendshipMessageRawPayload,
   IosCatMessage,
   IoscatMessageRawPayload,
   IosCatRoomMemberRawPayload,
@@ -61,6 +62,7 @@ import cuid from 'cuid'
 
 import {
   ApiApi,
+  PBIMAddFriendReq,
   PBIMAddGroupMembersReq,
   PBIMCreateGroupReq,
   PBIMDeleteGroupMembersReq,
@@ -92,8 +94,11 @@ export class PuppetIoscat extends Puppet {
   // ios API class instance
   private API: ApiApi = new ApiApi()
 
-  // private loopTimer?: NodeJS.Timer
+  // cache odinary message
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
+
+  // cache friendship request message
+  private readonly cacheIoscatFirendshipMessage: LRU.Cache<string, IoscatFriendshipMessageRawPayload>
 
   private iosCatManager: IosCatManager
 
@@ -112,6 +117,7 @@ export class PuppetIoscat extends Puppet {
     }
 
     this.cacheIoscatMessagePayload = new LRU<string, any>(lruOptions)
+    this.cacheIoscatFirendshipMessage = new LRU<string, any>(lruOptions)
 
     this.iosCatManager = new IosCatManager(options)
 
@@ -150,9 +156,9 @@ export class PuppetIoscat extends Puppet {
   }
 
   private initEventHook () {
-    IMSink.event.on('MESSAGE', async (msg: IoscatMessageRawPayload) => {
+    IMSink.event.on('MESSAGE', async (msg: IoscatMessageRawPayload | IoscatFriendshipMessageRawPayload) => {
       /**
-       * 0. Discard messages when not loggedin
+       * Discard messages when not loggedin
        */
       if (!this.id) {
         log.warn('PuppetIoscat', 'onIoscatMessage(%s) discarded message because puppet is not logged-in',
@@ -161,23 +167,24 @@ export class PuppetIoscat extends Puppet {
       }
 
       /**
-       * 1. if the message is period message, feed the dog
-       */
-      if (msg.payload.content === CONSTANT.MESSAGE) {
-        this.iosCatManager.dog.feed({ data: 'work' })
-        return
-      }
-
-      /**
-       * 2. Save message for future usage
-       */
-      msg.id = cuid()
-      this.cacheIoscatMessagePayload.set(msg.id, msg)
-
-      /**
-       * 3. Check for Diffirent Message Types
+       * Check for Diffirent Message Types
        */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
+        // the msg type is IoscatMessageRawPayload
+        msg = msg as IoscatMessageRawPayload
+        /**
+         * 1. if the message is period message, feed the dog
+         */
+        if (msg.payload.content === CONSTANT.MESSAGE) {
+          this.iosCatManager.dog.feed({ data: 'work' })
+          return
+        }
+
+        /**
+         * 2. Save message for future usage
+         */
+        msg.id = cuid()
+        this.cacheIoscatMessagePayload.set(msg.id, msg)
         const payloadType = {
           messageType: msg.payload.messageType,
           platformMsgType: msg.payload.platformMsgType,
@@ -198,12 +205,17 @@ export class PuppetIoscat extends Puppet {
       }
       // 掉线信息
       if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT') {
+        msg = msg as IoscatMessageRawPayload
         // throw 一个error
         this.emit('error', new Error(msg.id))
         return
       }
       // 添加好友信息
       if (msg.type === 'ON_IM_RELATION_APPLY') {
+        // save friendship request message for future usage
+        msg = msg as IoscatFriendshipMessageRawPayload
+        msg.id = cuid()
+        this.cacheIoscatFirendshipMessage.set(msg.id, msg)
         this.emit('friendship', msg.id)
         return
       }
@@ -781,8 +793,13 @@ export class PuppetIoscat extends Puppet {
    *
    */
   // 特殊消息的messageId
-  public async friendshipRawPayload (id: string): Promise<any> {
-    return { id } as any
+  public async friendshipRawPayload (id: string): Promise<IoscatFriendshipMessageRawPayload> {
+    log.verbose('PuppetIoscat', 'friendshipRawPayload(%s)', id)
+    const rawPayload = this.cacheIoscatFirendshipMessage.get(id)
+    if (rawPayload) {
+      return rawPayload
+    }
+    throw new Error('message not exist')
   }
   public async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
     return rawPayload
@@ -793,12 +810,28 @@ export class PuppetIoscat extends Puppet {
     hello: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'friendshipAdd(%s, %s)', contactId, hello)
+    throw new Error('not support')
   }
 
   public async friendshipAccept (
     friendshipId: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'friendshipAccept(%s)', friendshipId)
+    const messageRawPayload = await this.messageRawPayload(friendshipId)
+    if (!messageRawPayload.payload.platformUid) {
+      throw new Error('platformUid not exist, perhaps this is an error message')
+    }
+    const requestBody: PBIMAddFriendReq = {
+      platformUid: messageRawPayload.payload.platformUid,
+      profileCustomID: this.options.token || ioscatToken(),
+      serviceID: CONSTANT.serviceID,
+    }
+    const body = (await this.API.imApiAddFriendPost(requestBody)).body
+    if (body.code === 0) {
+      log.silly('PuppetIoscat', 'friendshipAccept(%s) success', friendshipId)
+    } else {
+      log.error('PuppetIoscat', 'friendshipAccept(%s) failed, reason is %s', friendshipId, body.msg)
+    }
   }
 
   public ding (data?: string): void {

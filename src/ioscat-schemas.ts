@@ -129,6 +129,45 @@ export interface IoscatMessageRawPayload {
   type: string,
 }
 
+export interface IoscatFriendshipMessageRawPayload {
+  /**
+   * {
+   *   "payload": {
+   *     "id": "4e6318168efe4a988a2276da280f909c",
+   *     "profileContactID": "b823dda88ee3462882d77bcec6df4263",
+   *     "profilePlatformUid": "wxid_tdax1huk5hgs12",
+   *     "profileCustomID": "dancewuli",
+   *     "contactID": "ca87af6ec6134ab184c2266ce5430d76",
+   *     "platformUid": "wxid_5zj4i5htp9ih22",
+   *     "customID": "huan-us",
+   *     "requestTime": 1533751897,
+   *     "requestDesc": "I'm Huan LI",
+   *     "status": 2,
+   *     "timelineBlockByAccount": 1,
+   *     "serviceID": 13,
+   *     "ctime": 1533751898
+   *   },
+   *   "type": "ON_IM_RELATION_APPLY"
+   * }
+   */
+  id                          : string,     // message id for save
+  payload: {
+    id                        : string,     // friendship message id
+    profileContactID          : string,     // operator contact id
+    profilePlatformUid        : string,     // operator platform id
+    profileCustomID           : string,     // operator custom id(wechaty number)
+    contactID                 : string,     // applicant Contact id
+    platformUid               : string,     // applicant platform id
+    customID                  : string,     // applicant custom id
+    requestTime               : number,     // applicant time
+    requestDesc               : string,     // request description
+    status                    : number,     // ?
+    timelineBlockByAccount    : number,     // ?
+    serviceId                 : number,     // wechaty service id is a constant, who's value is 13
+    ctime                     : number,     // database create time
+  },
+  type                        : string,     // message type, who's value is ON_IM_RELATION_APPLY
+}
 export interface IosCatContactRawPayload {
   // {
   //   "code": 0,

@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-ioscat",
-  "version": "0.4.21",
+  "version": "0.5.0",
   "description": "Puppet Ios Cat for Wechaty",
   "main": "dist/src/index.js",
   "directories": {
@@ -75,7 +75,7 @@
     "typescript": "^3.0.1",
     "watchdog": "^0.8.10",
     "wechaty": "^0.19.123",
-    "wechaty-puppet": "^0.9.25"
+    "wechaty-puppet": "^0.13.17"
   },
   "git": {
     "scripts": {

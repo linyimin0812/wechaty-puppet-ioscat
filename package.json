@@ -56,7 +56,6 @@
     "@types/request": "^2.47.1",
     "@types/semver": "^5.5.0",
     "@types/xml2js": "^0.4.3",
-    "@types/xml2json": "^0.10.0",
     "blue-tape": "^1.0.0",
     "brolog": "^1.6.5",
     "file-box": "^0.8.22",
@@ -103,7 +102,6 @@
     "fs-extra": "^6.0.1",
     "qr-image": "^3.2.0",
     "request": "^2.87.0",
-    "xml2js": "^0.4.19",
-    "xml2json": "^0.11.2"
+    "xml2js": "^0.4.19"
   }
 }

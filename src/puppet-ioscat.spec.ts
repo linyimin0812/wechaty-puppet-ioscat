@@ -9,7 +9,9 @@ class PuppetMockTest extends PuppetIoscat {
 }
 
 test('PuppetMock restart without problem', async (t) => {
-  const puppet = new PuppetMockTest()
+  const puppet = new PuppetMockTest({
+    token: 'wxid_tdax1huk5hgs12',
+  })
   try {
     for (let i = 0; i < 3; i++) {
       await puppet.start()

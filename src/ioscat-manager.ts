@@ -19,13 +19,18 @@ import {
 } from './config'
 
 import {
+  ApiApi,
   ContactApi,
   GroupApi,
   GroupMemberApi,
+  PBIMSendMessageReq,
   RelationApi,
 } from '../generated/api'
 
 import { PuppetOptions } from 'wechaty-puppet'
+
+import { Watchdog } from 'watchdog'
+import { IosCatEvent } from './pure-function-helper/ioscat-event'
 
 export class IosCatManager {
   // persistent store
@@ -38,22 +43,24 @@ export class IosCatManager {
   /**
    * swagger generator api
    */
-  private GROUP_API = new GroupApi()
-  private GROUP_MEMBER_API = new GroupMemberApi()
+  private API                       = new ApiApi()
+  private GROUP_API                 = new GroupApi()
+  private GROUP_MEMBER_API          = new GroupMemberApi()
   private RELATION_API: RelationApi = new RelationApi()
-  private CONTACT_API: ContactApi = new ContactApi()
-
+  private CONTACT_API: ContactApi   = new ContactApi()
+  public dog: Watchdog
+  public timer: NodeJS.Timer | undefined        // `undefined` stands for the initail value
   constructor (
     public options: PuppetOptions = {},
+    timeout: number = 60 * 1000
   ) {
-
+    this.dog = new Watchdog(timeout)
   }
 
   public async initCache (
     token: string,
-    userId: string,
   ): Promise<void> {
-    log.verbose('PuppetIoscat', 'initCache(%s, %s)', token, userId)
+    log.verbose('PuppetIoscat', 'initCache(%s)', token)
 
     if (this.cacheContactRawPayload
       || this.cacheRoomMemberRawPayload
@@ -69,8 +76,6 @@ export class IosCatManager {
       'puppet-ioscat-cache',
       path.sep,
       token,
-      path.sep,
-      userId,
     )
 
     const baseDirExist = await fs.pathExists(baseDir)
@@ -78,7 +83,7 @@ export class IosCatManager {
     if (!baseDirExist) {
       await fs.mkdirp(baseDir)
     }
-    log.silly('PuppetIoscat', 'initCache(%s, %s)', token, userId)
+    log.silly('PuppetIoscat', 'initCache(%s)', token)
 
     try {
       this.cacheContactRawPayload = new FlashStoreSync(path.join(baseDir, 'contact-raw-payload'))
@@ -206,6 +211,7 @@ export class IosCatManager {
       const response = await this.GROUP_API.imGroupListGroupGet(CONSTANT.serviceID, this.options.token || ioscatToken(),
         CONSTANT.NULL, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
       const roomList = response.body.data.content
+      log.silly('PuppetIosCatManager', `syncContactsAndRooms(), length %s`, this.options.token)
       // if not rooms exist, the result roomList will be []
       if (roomList && roomList.length) {
         for (const room of roomList) {
@@ -213,6 +219,7 @@ export class IosCatManager {
           const roomRawPayload: IosCatRoomRawPayload = room as any
           const roomId = roomRawPayload.platformGid
           this.cacheRoomRawPayload.set(roomId, roomRawPayload)
+          await this.roomMemberRawpayload(room.platformGid)
         }
       } else {
         throw new Error(`${this.options.token || ioscatToken()} has not room`)
@@ -223,7 +230,7 @@ export class IosCatManager {
        */
       let page = 1
       const platformUid = this.options.token || ioscatToken()
-      const contactIDs = new Array<number>()
+      const platformUids = new Array<string>()
       while (true) {
         const relationPageBody = (await this.RELATION_API.imRelationPageGet(CONSTANT.serviceID,
           platformUid, CONSTANT.NULL, STATUS.FRIENDS_ACCEPTED, CONSTANT.NAN, page, CONSTANT.LIMIT, CONSTANT.NAN)).body
@@ -233,7 +240,7 @@ export class IosCatManager {
             break
           }
           for (const contact of relationPageBody.data.content) {
-            contactIDs.push(contact.contactID)
+            platformUids.push(contact.platformUid)
           }
           // get next page contacts's id
           page += 1
@@ -242,19 +249,31 @@ export class IosCatManager {
         }
       }
       // use IDs to get all contacts's detail infomation
-      const body = (await this.CONTACT_API.imContactRetrieveByIDsGet(contactIDs)).body
-
-      if (body.code === 0) {
-        for (const contact of body.data) {
-          // FIXME: should not use `as any`
-          this.cacheContactRawPayload.set(contact.platformUid, contact as any)
+      try {
+        const results = await Promise.all(
+          platformUids.map(
+            value => this.CONTACT_API.imContactRetrieveByPlatformUidGet(CONSTANT.serviceID, value),
+          ),
+        )
+        for (const result of results) {
+          const body = result.body
+          if (body.code === 0) {
+            // FIXME: should not use `as any`
+            this.cacheContactRawPayload.set(body.data.platformUid, body.data as any)
+          } else {
+            throw new Error(`There is wrong with base API: ${body.msg}`)
+          }
         }
+        log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
+            this.cacheContactRawPayload.size,
+            this.cacheRoomRawPayload.size,
+          )
+        log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
+      } catch (err) {
+        log.error('ioscat-manager', 'syncContactsAndRooms: %s', JSON.stringify(err))
+        return
       }
-      log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
-        this.cacheContactRawPayload.size,
-        this.cacheRoomRawPayload.size,
-      )
-      log.verbose('PuppetIosCatManager', 'syncContactsAndRooms() sync contact done!')
+
     } else {
       throw new Error('id is neither room nor contact')
     }
@@ -297,14 +316,13 @@ export class IosCatManager {
 
     if (this.cacheRoomRawPayload.has(id)) {
       const roomRawPayload = this.cacheRoomRawPayload.get(id)
-      if (! roomRawPayload) {
-        throw new Error('room id not exist')
+      if (roomRawPayload) {
+        return roomRawPayload
       }
-      return roomRawPayload
     }
 
     // room is not exist in cache, get it from infrastructure API
-    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.NAN, CONSTANT.serviceID, id)
+    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.serviceID, id)
     // FIXME: should not use `as any`
     const rawPayload: IosCatRoomRawPayload = response.body.data as any
 
@@ -313,8 +331,8 @@ export class IosCatManager {
       CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
     const members = listMemberResponse.body.data
     // if the room of id is not exist, the result will not involved data filed
-    if (rawPayload || (members && members.content.length > 0)/* && tryRawPayload.user_name */) {
-      const memberIdList = members.content.map((value, index) => {
+    if (rawPayload && (members && members.content.length > 0)) {
+      const memberIdList = await members.content.map((value, index) => {
         return value.platformUid
       })
       rawPayload.memberIdList = memberIdList
@@ -327,7 +345,29 @@ export class IosCatManager {
 
   public async roomMemberRawpayload (roomId: string): Promise<{ [contactId: string]: IosCatRoomMemberRawPayload }> {
     log.verbose('PuppetIosCatManager', 'roomMemberRawPayload(%s)', roomId)
-    return {} as any
+    if (!this.cacheRoomMemberRawPayload) {
+      throw new Error('cache not init')
+    }
+    if (this.cacheRoomMemberRawPayload.has(roomId)) {
+      const roomMemberPayload = this.cacheRoomMemberRawPayload.get(roomId)
+      if (! roomMemberPayload) {
+        throw new Error('room id not exists')
+      }
+      return roomMemberPayload
+    }
+    const response = await this.GROUP_MEMBER_API.imGroupListMemberGet(CONSTANT.serviceID, roomId,
+    CONSTANT.NAN, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
+    if (response.body.code === 0 && response.body.data) {
+      // FIXME: should not use `as any`
+      const roomMembers = response.body.data.content
+      const membersPayloads: {[key: string]: IosCatRoomMemberRawPayload} = {} as any
+      for (const member of roomMembers) {
+        membersPayloads[member.platformUid] = member
+      }
+      this.cacheRoomMemberRawPayload.set(roomId, membersPayloads)
+      return membersPayloads
+    }
+    throw new Error('contact not exist')
   }
 
   public async contactRawPayload (contactId: string): Promise<IosCatContactRawPayload> {
@@ -375,7 +415,7 @@ export class IosCatManager {
     roomId: string,
     dirty = false,
   ): Promise<string[]> {
-    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d)', roomId)
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%s)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited')
     }
@@ -395,7 +435,31 @@ export class IosCatManager {
     const memberIdList = Object.keys(memberRawPayloadDict)
 
     // console.log('memberRawPayloadDict:', memberRawPayloadDict)
-    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
+    log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%s) length=%d', roomId, memberIdList.length)
     return memberIdList
+  }
+
+  public async checkOnline () {
+    log.silly('IoscatMnager', 'checkOnline()')
+    this.dog.on('feed', (food) => {
+      IosCatEvent.emit('heartbeat', food.data)
+      log.silly('checkOnline()', 'feed')
+    })
+
+    this.dog.on('reset', () => {
+      // something wrong
+      IosCatEvent.emit('broken')
+    })
+    // send a message periodic
+
+    const data: PBIMSendMessageReq = new PBIMSendMessageReq()
+    data.serviceID = CONSTANT.serviceID,
+    data.sessionType = CONSTANT.P2P
+    data.toCustomID = data.fromCustomID = this.options.token || ioscatToken()
+    data.content = CONSTANT.MESSAGE
+    this.API.imApiSendMessagePost(data)
+    this.timer = setInterval(async () => {
+      await this.API.imApiSendMessagePost(data)
+    }, 20 * 1000)
   }
 }

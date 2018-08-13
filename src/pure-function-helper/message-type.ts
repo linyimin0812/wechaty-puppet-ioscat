@@ -3,50 +3,46 @@ import {
 }                         from 'wechaty-puppet'
 
 import {
-  IosCatMessageType
+  IosCatMessage,
+  IoscatMessageRawPayload,
 }                         from '../ioscat-schemas'
 
+import equals from 'deep-equal'
+
 export function messageType (
-  rawType: IosCatMessageType,
+  rawPayload: IoscatMessageRawPayload,
 ): MessageType {
-  let type: MessageType
 
-  switch (rawType) {
-
-    case IosCatMessageType.Text:
-      type = MessageType.Text
-      break
-
-    case IosCatMessageType.Image:
-      type = MessageType.Image
-      // console.log(rawPayload)
-      break
-
-    case IosCatMessageType.Voice:
-      type = MessageType.Audio
-      // console.log(rawPayload)
-      break
-
-    case IosCatMessageType.Video:
-      type = MessageType.Video
-      // console.log(rawPayload)
-      break
-
-    case IosCatMessageType.ShareCard:
-      type = MessageType.Contact
-      break
-
-    case IosCatMessageType.Animation:
-    case IosCatMessageType.Transfer:
-    case IosCatMessageType.Location:
-    case IosCatMessageType.FriendRequest:
-    case IosCatMessageType.Link:
-      type = MessageType.Unknown
-      break
-
-    default:
-      throw +new Error('unsupported type: ' + IosCatMessageType[rawType] + '(' + rawType + ')')
+  const payload = rawPayload.payload
+  const payloadMessageType = payload.messageType
+  const payloadPlatformMsgType = payload.platformMsgType
+  const payloadType = {
+    messageType: payloadMessageType,
+    platformMsgType: payloadPlatformMsgType,
   }
 
-  return type
+  if (equals(IosCatMessage.Text, payloadType)) {
+    return MessageType.Text
+  }
+
+  if (equals(IosCatMessage.Image, payloadType)) {
+    return MessageType.Image
+  }
+
+  if (equals(IosCatMessage.Voice, payloadType)) {
+    return MessageType.Audio
+  }
+
+  if (equals(IosCatMessage.Video, payloadType)) {
+    return MessageType.Video
+  }
+
+  if (equals(IosCatMessage.ShareCard, payloadType)) {
+    return MessageType.Contact
+  }
+
+  if (equals(IosCatMessage.File, payloadType)) {
+    return MessageType.Attachment
+  }
+  return MessageType.Unknown
 }

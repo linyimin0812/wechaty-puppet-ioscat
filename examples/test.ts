@@ -9,20 +9,58 @@ const puppet = new PuppetIoscat({
 
 const wechaty = new Wechaty({ puppet })
 
-wechaty.on('login', (user) => log.silly(`login: ${user}`))
+wechaty.on('login', async (user) => {
+  log.silly(`login: ${user}`)
+})
   .on('message', async (msg) => {
     const from = msg.from()
     const to = msg.to()
     const room = msg.room()
     if (from) {
-      log.silly('test', 'message', from.name())
+      log.silly('test', 'from: %s', from.name())
     }
     if (to) {
-      log.silly('test', 'message', to.name())
+      log.silly('test', 'to: %s', to.name())
     }
     if (room) {
-      log.silly('test', 'message', await room.topic())
+      log.silly('test', 'message: %s', await room.topic())
     }
   })
+  .on('error', (err) => {
+    log.error(JSON.stringify(err))
+  })
+  .on('room-join', async function (this, room, inviteeList, inviter) {
+    log.info('room-join', 'room\'s name:%s, inviteeList=%s, inviter=%s',
+    await room.topic(), JSON.stringify(inviteeList), inviter.name())
+  })
+  .on('room-leave', async function (this, room, leaverList) {
+    log.info('room-leave', 'room\'s name:%s, inviteeList=%s',
+    await room.topic(), JSON.stringify(leaverList))
+  })
+  .on('room-topic', async function (this, room, newTopic, oldTopic, changer) {
+    await room.ready(true)
+    log.info('room-topic', 'room\'s new name:%s, oldName=%s, changer=%s',
+    (await room.topic()), oldTopic, changer.name())
+  })
 
-wechaty.start()
+async function start () {
+  await wechaty.start()
+  const contact = await wechaty.Contact.find({ name: '林贻民' })
+  if (contact) {
+    // log.silly('发语音')
+    // contact.say('hello')
+  } else {
+    log.silly('null')
+  }
+
+  const room = await wechaty.Room.find({ topic: '直播一群' })
+  if (room) {
+    log.silly('room 发消息')
+    // room.say('hello')
+  } else {
+    log.silly('没有找到群')
+  }
+
+}
+
+start().then(() => { return }).catch(() => { return })

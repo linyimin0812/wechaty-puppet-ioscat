@@ -42,17 +42,18 @@ import {
 
 import {
   IosCatContactRawPayload,
+  IoscatFriendshipMessageRawPayload,
+  IosCatMessage,
   IoscatMessageRawPayload,
   IosCatRoomMemberRawPayload,
-  IosCatRoomRawPayload
+  IosCatRoomRawPayload,
 } from './ioscat-schemas'
 
 import {
   CONSTANT,
   ioscatToken,
   log,
-  qrCodeForChatie,
-  UUID
+  qrCodeForChatie
 } from './config'
 
 import { default as IMSink } from './im-sink'
@@ -61,14 +62,13 @@ import cuid from 'cuid'
 
 import {
   ApiApi,
-  ContactApi,
+  PBIMAddFriendReq,
   PBIMAddGroupMembersReq,
   PBIMCreateGroupReq,
   PBIMDeleteGroupMembersReq,
   PBIMSendMessageReq,
   PBIMSetGroupDescReq,
   PBIMSetGroupNameReq,
-  RelationApi
 } from '../generated/api'
 
 import { IosCatManager } from './ioscat-manager'
@@ -76,6 +76,13 @@ import { IosCatManager } from './ioscat-manager'
 import { IosCatEvent } from './pure-function-helper/ioscat-event'
 import { messageRawPayloadParser } from './pure-function-helper/message-raw-parser'
 
+import { roomJoinEventMessageParser } from './pure-function-helper/room-event-join-message-parser'
+import { roomLeaveEventMessageParser } from './pure-function-helper/room-event-leave-message-parser'
+import { roomTopicEventMessageParser } from './pure-function-helper/room-event-topic-message-parser'
+
+import flatten from 'array-flatten'
+
+import equals from 'deep-equal'
 export interface MockRoomRawPayload {
   topic: string,
   memberList: string[],
@@ -86,11 +93,12 @@ export class PuppetIoscat extends Puppet {
 
   // ios API class instance
   private API: ApiApi = new ApiApi()
-  private CONTACT_API = new ContactApi()
-  private RELATION_API = new RelationApi()
 
-  // private loopTimer?: NodeJS.Timer
+  // cache odinary message
   private readonly cacheIoscatMessagePayload: LRU.Cache<string, IoscatMessageRawPayload>
+
+  // cache friendship request message
+  private readonly cacheIoscatFirendshipMessage: LRU.Cache<string, IoscatFriendshipMessageRawPayload>
 
   private iosCatManager: IosCatManager
 
@@ -103,12 +111,13 @@ export class PuppetIoscat extends Puppet {
       max: 10000,
       // length: function (n) { return n * 2},
       dispose (key: string, val: any) {
-        log.silly('PuppetPadchat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+        log.silly('PuppetIoscat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
       },
       maxAge: 1000 * 60 * 60,
     }
 
     this.cacheIoscatMessagePayload = new LRU<string, any>(lruOptions)
+    this.cacheIoscatFirendshipMessage = new LRU<string, any>(lruOptions)
 
     this.iosCatManager = new IosCatManager(options)
 
@@ -118,49 +127,131 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', `start()`)
 
     this.state.on('pending')
+
     // await some tasks...
-    this.initEventHook()
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
-    log.silly('topic:%s', topic)
-    IMSink.start(topic)
+    log.silly('topic: ', topic)
+    await IMSink.start(topic)
 
     this.state.on(true)
 
     this.id = this.options.token || ioscatToken()
 
-    //  init cache
-    await this.iosCatManager.initCache(this.id, CONSTANT.CUSTOM_ID)
+    await this.startWatchdog()
 
-    // sync roomMember, contact and room
-    this.iosCatManager.syncContactsAndRooms()
+    this.initEventHook()
+
+    //  init cache
+    await this.iosCatManager.initCache(this.id)
+
     // const user = this.Contact.load(this.id)
     // emit contactId
     // TODO: 验证
     this.emit('login', this.id)
+    // FIXME: should do this after login
+    // sync roomMember, contact and room
+    await this.iosCatManager.syncContactsAndRooms()
+    // IosCatEvent.emit('sync-contacts-and-room')
   }
 
   private initEventHook () {
-    IMSink.event.on('MESSAGE', async (msg) => {
-      msg.id = cuid()
-      this.cacheIoscatMessagePayload.set(msg.id, msg)
+    IMSink.event.on('MESSAGE', async (msg: IoscatMessageRawPayload | IoscatFriendshipMessageRawPayload) => {
+      /**
+       * Discard messages when not loggedin
+       */
+      if (!this.id) {
+        log.warn('PuppetIoscat', 'onIoscatMessage(%s) discarded message because puppet is not logged-in',
+        JSON.stringify(msg))
+        return
+      }
+
+      /**
+       * Check for Diffirent Message Types
+       */
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
-        this.emit('message', msg.id)
+        // the msg type is IoscatMessageRawPayload
+        msg = msg as IoscatMessageRawPayload
+        /**
+         * 1. if the message is period message, feed the dog
+         */
+        if (msg.payload.content === CONSTANT.MESSAGE) {
+          this.iosCatManager.dog.feed({ data: 'work' })
+          return
+        }
+
+        /**
+         * 2. Save message for future usage
+         */
+        msg.id = cuid()
+        this.cacheIoscatMessagePayload.set(msg.id, msg)
+        const payloadType = {
+          messageType: msg.payload.messageType,
+          platformMsgType: msg.payload.platformMsgType,
+        }
+
+        if (equals(IosCatMessage.RoomJoinOrLeave, payloadType)) {
+          await Promise.all([
+            this.onIosCatMessageRoomEventJoin(msg),
+            this.onIoscatMessageRoomEventLeave(msg),
+            this.onIoscatMessageRoomEventTopic(msg),
+          ])
+        } else if (equals(IosCatMessage.RoomTopic, payloadType)) {
+          await this.onIoscatMessageRoomEventTopic(msg)
+        } else {
+          this.emit('message', msg.id)
+        }
         return
       }
       // 掉线信息
-      if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT' && msg.payload.toUpperCase() === UUID) {
+      if (msg.type === 'ON_DMS_HEARTBEAT_TIMEOUT') {
+        msg = msg as IoscatMessageRawPayload
         // throw 一个error
         this.emit('error', new Error(msg.id))
         return
       }
       // 添加好友信息
       if (msg.type === 'ON_IM_RELATION_APPLY') {
+        // save friendship request message for future usage
+        msg = msg as IoscatFriendshipMessageRawPayload
+        msg.id = cuid()
+        this.cacheIoscatFirendshipMessage.set(msg.id, msg)
         this.emit('friendship', msg.id)
         return
       }
     })
   }
+
+  public async startWatchdog () {
+    log.verbose('PuppetIoscat', 'startWatchdog()')
+
+    if (!this.iosCatManager) {
+      throw new Error('no ioscat manager')
+    }
+
+    /**
+     * Use ioscat-event heartbeat to feed dog
+     */
+    IosCatEvent.on('heartbeat', (data: string) => {
+      log.silly('PuppetIoscat', 'startWatchdog() IosCatEvent.on(heartbeat)')
+      this.emit('watchdog', {
+        data,
+      })
+    })
+
+    IosCatEvent.on('broken', () => {
+      this.emit('error', new Error('Cant receive message event'))
+    })
+
+    this.emit('watchdog', {
+      data: 'inited',
+      type: 'startWatchdog()',
+    })
+
+    // send message `periodic_message`
+    await this.iosCatManager.checkOnline()
+  }
+
   public async stop (): Promise<void> {
     log.verbose('PuppetIoscat', 'stop()')
 
@@ -172,22 +263,22 @@ export class PuppetIoscat extends Puppet {
 
     this.state.off('pending')
 
-    // if (this.loopTimer) {
-    //   clearInterval(this.loopTimer)
-    // }
-
     // await some taks...
     // 关闭监听消息事件
-    IMSink.getConn().then((CONN: any) => {
-      CONN.close()
-      log.silly('Amqp链接关闭')
-    }).catch((err) => {
-      log.error('IMSink get connection failed', err)
-    })
+    await IMSink.close()
 
-    // release cache
-    this.iosCatManager.releaseCache()
+    // remove allListener
+    IosCatEvent.removeAllListeners()
 
+    // remove all timer
+    if (!this.iosCatManager.timer) {
+      log.silly('PuppetIoscat', 'stop() ')
+    } else {
+      clearInterval(this.iosCatManager.timer)
+    }
+
+    this.iosCatManager.dog.unref()
+    await this.logout()
     this.state.off(true)
   }
 
@@ -197,13 +288,24 @@ export class PuppetIoscat extends Puppet {
     if (!this.id) {
       throw new Error('logout before login?')
     }
-
+    this.removeAllListeners()
     this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
     this.id = undefined
 
     // do the logout job --> release cache
-    this.iosCatManager.releaseCache()
+    await this.iosCatManager.releaseCache()
   }
+
+  // public async syncContactsAndRoom () {
+  //   await new Promise(resolve => { setTimeout(resolve, 1000) })
+  //   // To be sure the user has logged
+  //   log.silly('PuppetIoscat', 'event: sync-contacts-and-room')
+  //   IosCatEvent.on('sync-contacts-and-room', () => {
+  //     this.iosCatManager.syncContactsAndRooms().catch(err => {
+  //       log.error('PuppetIoscat', 'syncContactsAndRoom(): %s', err)
+  //     })
+  //   })
+  // }
 
   /**
    *
@@ -223,7 +325,6 @@ export class PuppetIoscat extends Puppet {
     throw new Error('not supported')
   }
 
-  // TODO: test
   public async contactList (): Promise<string[]> {
     log.verbose('PuppetIoscat', 'contactList()')
     if (!this.iosCatManager) {
@@ -292,6 +393,62 @@ export class PuppetIoscat extends Puppet {
       weixin: rawPayload.customID
     }
     return payload
+  }
+
+  /**
+   * Overwrite the Puppet.contactPayload()
+   */
+  public async contactPayload (
+    contactId: string,
+  ): Promise<ContactPayload> {
+
+    try {
+      const payload = await super.contactPayload(contactId)
+      return payload
+    } catch (e) {
+      log.silly('PuppetIoscat', 'contactPayload(%s) exception: %s', contactId, e.message)
+      log.silly('PuppetIoscat', 'contactPayload(%s) get failed for %s',
+      'try load from room member data source', contactId)
+    }
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    /**
+     * Issue #1397
+     *  https://github.com/Chatie/wechaty/issues/1397#issuecomment-400962638
+     *
+     * Try to use the contact information from the room
+     * when it is not available directly
+     */
+    if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      log.silly('PuppetIoscat', 'contactPayload(%s) rawPayload not exist', contactId)
+
+      const roomList = await this.contactRoomList(contactId)
+      log.silly('PuppetIoscat', 'contactPayload(%s) found %d rooms', contactId, roomList.length)
+
+      if (roomList.length > 0) {
+        const roomId = roomList[0]
+        const roomMemberPayload = await this.roomMemberPayload(roomId, contactId)
+        if (roomMemberPayload) {
+
+          const payload: ContactPayload = {
+            avatar : roomMemberPayload.avatar,
+            gender : ContactGender.Unknown,
+            id     : roomMemberPayload.id,
+            name   : roomMemberPayload.name,
+            type   : ContactType.Personal,
+          }
+
+          this.cacheContactPayload.set(contactId, payload)
+          log.silly('PuppetIoscat', 'contactPayload(%s) cache SET', contactId)
+
+          return payload
+        }
+      }
+      throw new Error('no raw payload')
+    }
+
+    return this.contactRawPayloadParser(rawPayload)
   }
 
   /**
@@ -431,6 +588,10 @@ export class PuppetIoscat extends Puppet {
 
     const body = (await this.API.imApiDeleteGroupMembersPost(requestBody)).body
     if (body.code === 0) {
+      await Promise.all([
+        this.roomMemberPayloadDirty(roomId),
+        this.roomPayloadDirty(roomId)
+      ])
       log.info('PuppetIosCat', 'roomDel success')
     } else {
       log.info('PuppetIosCat', 'roomDel failed')
@@ -449,7 +610,6 @@ export class PuppetIoscat extends Puppet {
     return qrCodeForChatie()
   }
 
-  // TODO: test
   public async roomAdd (
     roomId: string,
     contactId: string,
@@ -473,7 +633,6 @@ export class PuppetIoscat extends Puppet {
 
   public async roomTopic (roomId: string): Promise<string>
   public async roomTopic (roomId: string, topic: string): Promise<void>
-  // TODO: test
   public async roomTopic (
     roomId: string,
     topic?: string,
@@ -494,12 +653,14 @@ export class PuppetIoscat extends Puppet {
     }
     const body = (await this.API.imApiSetGroupNamePost(requestBody)).body
     if (body.code === 0) {
+      await Promise.all([
+        this.roomPayloadDirty(roomId)
+      ])
       log.silly('PuppetIosCat', 'roomTopic(%s, %s)', roomId, topic)
       return
     }
     throw new Error('change room\'s topic error.')
   }
-  // TODO: emit room-create event and test
   public async roomCreate (
     contactIdList: string[],
     topic: string,
@@ -524,6 +685,9 @@ export class PuppetIoscat extends Puppet {
        * Give Server some time to the join message payload
        */
       await new Promise((r) => setTimeout(r, 1000))
+      if (platformGid === '') {
+        await new Promise((r) => setTimeout(r, 1000))
+      }
       await this.iosCatManager.roomRawPayload(platformGid)
       return platformGid
     }
@@ -536,7 +700,6 @@ export class PuppetIoscat extends Puppet {
 
   }
 
-  // TODO: test
   public async roomQrcode (roomId: string): Promise<string> {
     if (!this.iosCatManager) {
       throw new Error('no ioscat manager')
@@ -545,7 +708,6 @@ export class PuppetIoscat extends Puppet {
     return room.qrcode || ''
   }
 
-  // TODO: test
   public async roomMemberList (roomId: string): Promise<string[]> {
     log.verbose('PuppetIoscat', 'roommemberList(%s)', roomId)
     if (!this.iosCatManager) {
@@ -553,7 +715,7 @@ export class PuppetIoscat extends Puppet {
     }
 
     const memberIdList = await this.iosCatManager.getRoomMemberIdList(roomId)
-    log.silly('PuppetPadchat', 'roomMemberList()=%d', memberIdList.length)
+    log.silly('PuppetIoscat', 'roomMemberList()=%d', memberIdList.length)
 
     if (memberIdList.length <= 0) {
       await this.roomPayloadDirty(roomId)
@@ -581,6 +743,26 @@ export class PuppetIoscat extends Puppet {
       name: contactPayload.name,
       roomAlias: rawPayload.alias,
     }
+  }
+
+  public async roomMemberPayloadDirty (roomId: string) {
+    log.silly('PuppetIoscat', 'roomMemberRawPayloadDirty(%s)', roomId)
+
+    if (this.iosCatManager) {
+      await this.iosCatManager.roomMemberRawPayloadDirty(roomId)
+    }
+
+    await super.roomMemberPayloadDirty(roomId)
+  }
+
+  public async roomPayloadDirty (roomId: string): Promise<void> {
+    log.verbose('PuppetIoscat', 'roomPayloadDirty(%s)', roomId)
+
+    if (this.iosCatManager) {
+      this.iosCatManager.roomRawPayloadDirty(roomId)
+    }
+
+    await super.roomPayloadDirty(roomId)
   }
 
   public async roomAnnounce (roomId: string): Promise<string>
@@ -611,8 +793,13 @@ export class PuppetIoscat extends Puppet {
    *
    */
   // 特殊消息的messageId
-  public async friendshipRawPayload (id: string): Promise<any> {
-    return { id } as any
+  public async friendshipRawPayload (id: string): Promise<IoscatFriendshipMessageRawPayload> {
+    log.verbose('PuppetIoscat', 'friendshipRawPayload(%s)', id)
+    const rawPayload = this.cacheIoscatFirendshipMessage.get(id)
+    if (rawPayload) {
+      return rawPayload
+    }
+    throw new Error('message not exist')
   }
   public async friendshipRawPayloadParser (rawPayload: any): Promise<FriendshipPayload> {
     return rawPayload
@@ -623,12 +810,28 @@ export class PuppetIoscat extends Puppet {
     hello: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'friendshipAdd(%s, %s)', contactId, hello)
+    throw new Error('not support')
   }
 
   public async friendshipAccept (
     friendshipId: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'friendshipAccept(%s)', friendshipId)
+    const messageRawPayload = await this.messageRawPayload(friendshipId)
+    if (!messageRawPayload.payload.platformUid) {
+      throw new Error('platformUid not exist, perhaps this is an error message')
+    }
+    const requestBody: PBIMAddFriendReq = {
+      platformUid: messageRawPayload.payload.platformUid,
+      profileCustomID: this.options.token || ioscatToken(),
+      serviceID: CONSTANT.serviceID,
+    }
+    const body = (await this.API.imApiAddFriendPost(requestBody)).body
+    if (body.code === 0) {
+      log.silly('PuppetIoscat', 'friendshipAccept(%s) success', friendshipId)
+    } else {
+      log.error('PuppetIoscat', 'friendshipAccept(%s) failed, reason is %s', friendshipId, body.msg)
+    }
   }
 
   public ding (data?: string): void {
@@ -651,6 +854,134 @@ export class PuppetIoscat extends Puppet {
     return {} as any
   }
 
+  /**
+   * Look for room join event
+   */
+  protected async onIosCatMessageRoomEventJoin (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onIosCatMessageRoomEventJoin({id=%s})', rawPayload.id)
+
+    const roomJoinEvent = roomJoinEventMessageParser(rawPayload)
+
+    if (roomJoinEvent) {
+
+      const inviteeNameList = roomJoinEvent.inviteeNameList
+      const inviterName     = roomJoinEvent.inviterName
+      const roomId          = roomJoinEvent.roomId
+      log.silly('PuppetIoscat', 'onIosCatMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
+      const roomPayload = await this.iosCatManager.roomRawPayload(roomId)
+      // Because the members are new added into the room, we need to
+      // clear the cache, and reload
+      await Promise.all([
+        this.roomMemberPayloadDirty(roomId),
+        this.roomPayloadDirty(roomId)
+      ])
+      const inviteeIdList = flatten<string>(
+        await Promise.all(
+          inviteeNameList.map(
+            inviteeName => this.roomMemberSearch(roomId, inviteeName),
+          ),
+        ),
+      )
+
+      if (inviteeIdList.length < 1) {
+        throw new Error('inviteeIdList not found')
+      }
+
+      const inviterIdList = await this.roomMemberSearch(roomId, inviterName)
+
+      if (inviterIdList.length < 1) {
+        throw new Error('no inviterId found')
+      } else if (inviterIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onPadchatMessageRoomEvent() case PadchatMesssageSys:',
+        'inviterId found more than 1, use the first one.')
+      }
+
+      const inviterId = inviterIdList[0]
+
+      this.emit('room-join', roomId, inviteeIdList,  inviterId)
+      // To judge whether the room is just created or not
+      IosCatEvent.emit('room-create', roomId, roomPayload.name)
+    }
+  }
+
+  /**
+   * Look for room leave event
+   */
+  protected async onIoscatMessageRoomEventLeave (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onPadchatMessageRoomEventLeave({id=%s})', rawPayload.id)
+
+    const roomLeaveEvent = roomLeaveEventMessageParser(rawPayload)
+
+    if (roomLeaveEvent) {
+      const leaverNameList = roomLeaveEvent.leaverNameList
+      const removerName    = roomLeaveEvent.removerName
+      const roomId         = roomLeaveEvent.roomId
+      log.silly('PuppetIoscat', 'onIoscatMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
+
+      const leaverIdList = flatten<string>(
+        await Promise.all(
+          leaverNameList.map(
+            leaverName => this.roomMemberSearch(roomId, leaverName),
+          ),
+        ),
+      )
+      const removerIdList = await this.roomMemberSearch(roomId, removerName)
+      if (removerIdList.length < 1) {
+        throw new Error('no removerId found')
+      } else if (removerIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onPadchatMessage() case PadchatMesssageSys: removerId found more than 1',
+        'use the first one.')
+      }
+      const removerId = removerIdList[0]
+
+      if (!this.iosCatManager) {
+        throw new Error('no padchatManager')
+      }
+
+      /**
+       * Set Cache Dirty
+       */
+      await this.roomMemberPayloadDirty(roomId)
+      await this.roomPayloadDirty(roomId)
+
+      this.emit('room-leave',  roomId, leaverIdList, removerId)
+    }
+  }
+  /**
+   * Look for room topic event
+   */
+  protected async onIoscatMessageRoomEventTopic (rawPayload: IoscatMessageRawPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'onIoscatMessageRoomEventTopic({id=%s})', rawPayload.id)
+
+    const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
+
+    log.silly(JSON.stringify(rawPayload, null, 2))
+
+    if (roomTopicEvent) {
+      const changerName = roomTopicEvent.changerName
+      const newTopic    = roomTopicEvent.topic
+      const roomId      = roomTopicEvent.roomId
+      log.silly('PuppetIoscat', 'onIoscatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
+
+      const roomOldPayload = await this.roomRawPayload(roomId)
+      const oldTopic       = roomOldPayload.name
+
+      const changerIdList = await this.roomMemberSearch(roomId, changerName)
+      if (changerIdList.length < 1) {
+        throw new Error('no changerId found')
+      } else if (changerIdList.length > 1) {
+        log.warn('PuppetIoscat', 'onIoscatMessage() case IoscatMesssageSys:changerId found more than 1,',
+        'use the first one.')
+      }
+      const changerId = changerIdList[0]
+
+      /**
+       * Set Cache Dirty
+       */
+      await this.roomPayloadDirty(roomId)
+      this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
+    }
+  }
 }
 
 export default PuppetIoscat

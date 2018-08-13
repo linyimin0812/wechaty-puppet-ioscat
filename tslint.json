@@ -11,6 +11,8 @@
     "import-spacing": false,
     "no-multi-spaces": false,
     "member-ordering": false,
-    "typedef-whitespace": false
+    "typedef-whitespace": false,
+    "await-promise": false,
+    "arrow-parens": false
   }
 }

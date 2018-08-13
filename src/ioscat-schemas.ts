@@ -1,4 +1,9 @@
-
+export interface IosCatMessageType {
+  [type: string]: {
+    messageType: number,
+    platformMsgType?: number,
+  }
+}
 /**
  * type	integer
  * 文本,   1
@@ -17,24 +22,26 @@
  * 模板消息, 18
  * 通知, 10000
  */
-export enum IosCatMessageType {
-  Text              = 1,
-  Voice             = 2,
-  Image             = 3,
-  Video             = 4,
-  ShareCard         = 5,
-  Link              = 6,
-  LuckyMoney        = 7,
-  Transfer          = 8,
-  Location          = 11,
-  FriendRequest     = 12,
-  Animation         = 13,
-  VoiceChat         = 14,
-  VideoChat         = 15,
-  Template          = 18,
-  Notify            = 10000
+export const IosCatMessage: IosCatMessageType = {
+  Animation         : { messageType: 13, platformMsgType: 47 },
+  File              : { messageType: 19, platformMsgType: 49 },
+  FriendRequest     : { messageType: 12 },
+  Image             : { messageType: 3, platformMsgType: 3 },
+  Link              : { messageType: 17, platformMsgType: 49 },
+  Location          : { messageType: 11, platformMsgType: 48 },
+  LuckyMoney        : { messageType: 7 },
+  Notify            : { messageType: 10000 },
+  RoomJoinOrLeave   : { messageType: 17, platformMsgType: 10002 },
+  RoomTopic         : { messageType: 10000, platformMsgType: 10000 },
+  ShareCard         : { messageType: 5, platformMsgType: 42 },
+  Template          : { messageType: 18 },
+  Text              : { messageType: 1, platformMsgType: 1 },
+  Transfer          : { messageType: 8 },
+  Video             : { messageType: 4, platformMsgType: 43 },
+  VideoChat         : { messageType: 14 },
+  Voice             : { messageType: 2, platformMsgType: 34 },
+  VoiceChat         : { messageType: 15 },
 }
-
 export interface IoscatMessageRawPayload {
 
   /** p2p message structure */
@@ -122,6 +129,45 @@ export interface IoscatMessageRawPayload {
   type: string,
 }
 
+export interface IoscatFriendshipMessageRawPayload {
+  /**
+   * {
+   *   "payload": {
+   *     "id": "4e6318168efe4a988a2276da280f909c",
+   *     "profileContactID": "b823dda88ee3462882d77bcec6df4263",
+   *     "profilePlatformUid": "wxid_tdax1huk5hgs12",
+   *     "profileCustomID": "dancewuli",
+   *     "contactID": "ca87af6ec6134ab184c2266ce5430d76",
+   *     "platformUid": "wxid_5zj4i5htp9ih22",
+   *     "customID": "huan-us",
+   *     "requestTime": 1533751897,
+   *     "requestDesc": "I'm Huan LI",
+   *     "status": 2,
+   *     "timelineBlockByAccount": 1,
+   *     "serviceID": 13,
+   *     "ctime": 1533751898
+   *   },
+   *   "type": "ON_IM_RELATION_APPLY"
+   * }
+   */
+  id                          : string,     // message id for save
+  payload: {
+    id                        : string,     // friendship message id
+    profileContactID          : string,     // operator contact id
+    profilePlatformUid        : string,     // operator platform id
+    profileCustomID           : string,     // operator custom id(wechaty number)
+    contactID                 : string,     // applicant Contact id
+    platformUid               : string,     // applicant platform id
+    customID                  : string,     // applicant custom id
+    requestTime               : number,     // applicant time
+    requestDesc               : string,     // request description
+    status                    : number,     // ?
+    timelineBlockByAccount    : number,     // ?
+    serviceId                 : number,     // wechaty service id is a constant, who's value is 13
+    ctime                     : number,     // database create time
+  },
+  type                        : string,     // message type, who's value is ON_IM_RELATION_APPLY
+}
 export interface IosCatContactRawPayload {
   // {
   //   "code": 0,

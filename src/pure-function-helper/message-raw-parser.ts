@@ -24,7 +24,7 @@ export function messageRawPayloadParser (
   /**
    * 0. Set Message Type
    */
-  const type = messageType(rawPayload.payload.messageType)
+  const type = messageType(rawPayload)
 
   const payloadBase = {
     id: rawPayload.id,

@@ -1,2 +1,6 @@
-export * from './puppet-ioscat'
-export { log } from './config'
+export { log }          from './config'
+
+import { PuppetIoscat } from './puppet-ioscat'
+
+export { PuppetIoscat }
+export default PuppetIoscat

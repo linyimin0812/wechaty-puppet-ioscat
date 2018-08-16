@@ -3,8 +3,8 @@
   , "update.channel": "none"
 , "files.exclude": {
     "dist/": true
-  , "doc/": true
-  , "node_modules/": true
+  , "doc/": false
+  , "node_modules/": false
   , "package/": true
 }
 , "alignment": {

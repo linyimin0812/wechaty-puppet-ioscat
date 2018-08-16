@@ -982,6 +982,33 @@ export class PuppetIoscat extends Puppet {
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
   }
+
+  public async messageSendUrl (receiver: Receiver, urlLinkPayload: any): Promise<void> {
+    log.silly('messageSendUrl')
+  }
+
+  public async messageUrl (messageId: string): Promise <any> {
+    log.silly('messageUrl')
+    return '' as any
+  }
+  public async  contactSelfQrcode (): Promise<string> {
+    return 'contactSelfQrcode'
+  }
+  public async contactSelfName (newName: string) : Promise<void> {
+    if (!this.iosCatManager) {
+      throw new Error('no padchat manager')
+    }
+
+    // await this.iosCatManager.updateSelfName(newName)
+  }
+
+  public async contactSelfSignature (signature: string) : Promise<void> {
+    if (!this.iosCatManager) {
+      throw new Error('no padchat manager')
+    }
+
+    // await this.iosCatManager.updateSelfSignature(signature)
+  }
 }
 
 export default PuppetIoscat

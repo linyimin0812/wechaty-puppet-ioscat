@@ -7,7 +7,7 @@ import {
 }                           from './room-event-xml-message-parser'
 
 test('tranferXmlToText ', async t => {
-  const TEXT         = `12519001238@chatroom:
+  const TEXT = `12519001238@chatroom:
   <sysmsg type="sysmsgtemplate">
   	<sysmsgtemplate>
   		<content_template type="tmpl_type_profilewithrevokeqrcode">
@@ -18,7 +18,7 @@ test('tranferXmlToText ', async t => {
   					<memberlist>
   						<member>
   							<username><![CDATA[wxid_nbwjlkw19lkw22]]></username>
-  							<nickname><![CDATA[linyimin说]]></nickname>
+  							<nickname><![CDATA[linyimin]]></nickname>
   						</member>
   					</memberlist>
   				</link>

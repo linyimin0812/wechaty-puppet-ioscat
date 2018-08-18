@@ -322,7 +322,7 @@ export class IosCatManager {
     }
 
     // room is not exist in cache, get it from infrastructure API
-    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.serviceID, id)
+    const response = await this.GROUP_API.imGroupRetrieveGroupGet(CONSTANT.serviceID, parseInt(id, 10))
     // FIXME: should not use `as any`
     const rawPayload: IosCatRoomRawPayload = response.body.data as any
 

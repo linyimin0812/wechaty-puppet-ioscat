@@ -20,6 +20,8 @@ test('PuppetMock restart without problem', async (t) => {
     }
     t.pass('PuppetMock() start/restart successed.')
   } catch (e) {
+    // tslint:disable:no-console
+    console.error(e)
     t.fail(e)
   }
 })

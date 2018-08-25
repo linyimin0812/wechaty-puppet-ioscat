@@ -189,7 +189,7 @@ export interface IosCatContactRawPayload {
   //   },
   //   "msg": ""
   // }
-  id: number,             // 系统分配运营号ID
+  id: string,             // 系统分配运营号ID
   platformUid: string,    // 平台uid
   customID: string,       // 联系人平台自定义ID(微信号)
   nickname: string,       // 昵称
@@ -199,10 +199,11 @@ export interface IosCatContactRawPayload {
   state: string,          // 省份
   city: string,           // 城市
   signature: string,      // 签名
-  type: number,           // 类型
+  type?: number,           // 类型
   serviceID: number,      // 服务号
   extra: string,          // 扩展字段
   ctime: number           // 记录数据库时间
+  tags: string[]          // 标签
 
 }
 
@@ -291,11 +292,11 @@ export interface IosCatRoomRawPayload {
   /**
    * 系统分配群ID
    */
-  id: number,
+  id: string,
   /**
    * 系统分配群主联系人ID
    */
-  ownerContactID?: number,
+  ownerContactID?: string,
   /**
    * 群主平台ID
    */
@@ -359,6 +360,6 @@ export interface IosCatRoomRawPayload {
   /**
    * 标签
    */
-  tags?: string,
+  tags?: string[],
   memberIdList?             : string[]     // 群成员的ID
 }

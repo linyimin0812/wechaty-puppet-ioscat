@@ -28,8 +28,8 @@ import {
   ContactType,
 
   FriendshipPayload,
-
   MessagePayload,
+  MessageType,
 
   Puppet,
   PuppetOptions,
@@ -67,7 +67,6 @@ import {
   PBIMAddGroupMembersReq,
   PBIMCreateGroupReq,
   PBIMDeleteGroupMembersReq,
-  PBIMSendMessageReq,
   PBIMSetGroupDescReq,
   PBIMSetGroupNameReq,
 } from '../generated/api'
@@ -481,23 +480,7 @@ export class PuppetIoscat extends Puppet {
     text: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, text)
-    const data: PBIMSendMessageReq = new PBIMSendMessageReq()
-    data.serviceID = CONSTANT.serviceID
-    data.fromCustomID = this.options.token || ioscatToken() // WECHATY_PUPPET_IOSCAT_TOKEN
-    data.content = text
-    // 私聊
-    if (receiver.contactId) {
-      data.toCustomID = receiver.contactId
-      data.sessionType = CONSTANT.P2P
-    } else if (receiver.roomId) {
-      // 群聊
-      data.sessionType = CONSTANT.G2G
-      data.toCustomID = receiver.roomId
-
-    } else {
-      throw new Error('接收人名称不能为空')
-    }
-    this.API.imApiSendMessagePost(data)
+    await this.iosCatManager.sendMessage(receiver, text, IosCatMessage.Text.messageType)
 
   }
 
@@ -517,7 +500,6 @@ export class PuppetIoscat extends Puppet {
     throw new Error('Send Contact not supported yet')
   }
 
-  // TODO:
   public async messageForward (
     receiver: Receiver,
     messageId: string,
@@ -526,6 +508,51 @@ export class PuppetIoscat extends Puppet {
       receiver,
       messageId,
     )
+    log.verbose('PuppetPadchat', 'messageForward(%s, %s)',
+                              JSON.stringify(receiver),
+                              messageId,
+              )
+
+    if (!this.iosCatManager) {
+      throw new Error('no ioscat manager')
+    }
+
+    const payload = await this.messagePayload(messageId)
+
+    const rawPayload = await this.messageRawPayload(messageId)
+
+    const id = receiver.roomId || receiver.contactId
+    if (!id) {
+      throw Error(`Can not find the receiver id for forwarding voice message
+      (${rawPayload.id}), forward voice message failed`)
+    }
+
+    if (payload.type === MessageType.Text) {
+      if (!payload.text) {
+        throw new Error('no text')
+      }
+      await this.messageSendText(
+        receiver,
+        payload.text,
+      )
+    } else if (payload.type === MessageType.Audio) {
+      await this.iosCatManager.sendMessage(receiver, rawPayload.payload.content, IosCatMessage.Video.messageType)
+    } else if (payload.type === MessageType.Url) {
+      await this.messageSendUrl(
+        receiver,
+        await this.messageUrl(messageId)
+      )
+    } else if (payload.type === MessageType.Image) {
+      // Forward Image
+      await this.iosCatManager.sendMessage(receiver, rawPayload.payload.content, IosCatMessage.Image.messageType)
+    } else if (payload.type === MessageType.Attachment) {
+      await this.messageSendFile(
+        receiver,
+        await this.messageFile(messageId),
+      )
+    } else {
+      throw new Error('Unkown type message, forward failed')
+    }
   }
 
   /**
@@ -567,7 +594,6 @@ export class PuppetIoscat extends Puppet {
     return rooms
   }
 
-  // TODO: test
   public async roomDel (
     roomId: string,
     contactId: string,
@@ -985,7 +1011,7 @@ export class PuppetIoscat extends Puppet {
       throw new Error('no ioscat manager')
     }
     try {
-      await this.iosCatManager.sendTextMessage(receiver, JSON.stringify(urlLinkPayload), IosCatMessage.Link.messageType)
+      await this.iosCatManager.sendMessage(receiver, JSON.stringify(urlLinkPayload), IosCatMessage.Link.messageType)
     } catch (err) {
       log.error('PuppetIoscat', 'messageSendUrl() failed, %s', JSON.stringify(err, null, 2))
     }

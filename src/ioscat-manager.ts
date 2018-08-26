@@ -411,7 +411,7 @@ export class IosCatManager {
     return memberIdList
   }
 
-  public async sendTextMessage (
+  public async sendMessage (
     receiver: Receiver,
     message: string,
     messageType?: number,

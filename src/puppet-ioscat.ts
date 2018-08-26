@@ -38,6 +38,7 @@ import {
 
   RoomMemberPayload,
   RoomPayload,
+  UrlLinkPayload,
 } from 'wechaty-puppet'
 
 import {
@@ -983,13 +984,36 @@ export class PuppetIoscat extends Puppet {
     }
   }
 
-  public async messageSendUrl (receiver: Receiver, urlLinkPayload: any): Promise<void> {
-    log.silly('messageSendUrl')
+  public async messageSendUrl (receiver: Receiver, urlLinkPayload: UrlLinkPayload): Promise<void> {
+    log.verbose('PuppetIoscat', 'messageSendLink("%s", %s)', JSON.stringify(receiver), JSON.stringify(urlLinkPayload))
+    if (! this.iosCatManager) {
+      throw new Error('no ioscat manager')
+    }
+    try {
+      await this.iosCatManager.sendTextMessage(receiver, JSON.stringify(urlLinkPayload), IosCatMessage.Link.messageType)
+    } catch (err) {
+      log.error('PuppetIoscat', 'messageSendUrl() failed, %s', JSON.stringify(err, null, 2))
+    }
   }
 
-  public async messageUrl (messageId: string): Promise <any> {
-    log.silly('messageUrl')
-    return '' as any
+  public async messageUrl (messageId: string): Promise <UrlLinkPayload> {
+    const rawPayload = await this.messageRawPayload(messageId)
+    if (rawPayload.payload.messageType !== IosCatMessage.Link.messageType) {
+      throw new Error('Can not get url from non url payload')
+    } else {
+      try {
+        const urlPayload = JSON.parse(rawPayload.payload.content)
+        const urlLinkPayload: UrlLinkPayload = {
+          description: urlPayload.des,
+          thumbnailUrl: urlPayload.thumburl,
+          title: urlPayload.title,
+          url: urlPayload.url
+        }
+        return urlLinkPayload
+      } catch (err) {
+        throw new Error('Can not parse url message payload')
+      }
+    }
   }
   public async  contactSelfQrcode (): Promise<string> {
     return 'contactSelfQrcode'

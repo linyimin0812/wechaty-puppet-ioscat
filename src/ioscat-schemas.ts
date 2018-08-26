@@ -109,6 +109,8 @@ export interface IoscatMessageRawPayload {
 
   id     : string,   // 消息ID
   payload: {
+    id?                     : string,       // message id
+    profileContactID?       : string,       // 运营号的contactID
     profilePlatformUid      : string,       // 运营号平台Uid
     profileCustomID         : string,       // 运营号平台自定义ID(微信号)
     platformUid?            : string,       // 联系人平台Uid

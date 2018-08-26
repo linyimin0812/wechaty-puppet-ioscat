@@ -8,7 +8,7 @@ import path from 'path'
 import {
   IosCatContactRawPayload,
   IosCatRoomMemberRawPayload,
-  IosCatRoomRawPayload
+  IosCatRoomRawPayload,
 } from './ioscat-schemas'
 
 import {
@@ -26,11 +26,10 @@ import {
   ProfileApi,
 } from '../generated/api'
 
-import { PuppetOptions } from 'wechaty-puppet'
+import { PuppetOptions, Receiver } from 'wechaty-puppet'
 
 import { Watchdog } from 'watchdog'
 import { IosCatEvent } from './pure-function-helper/ioscat-event'
-
 export class IosCatManager {
   // persistent store
   private cacheContactRawPayload?: FlashStoreSync<string, IosCatContactRawPayload>
@@ -410,6 +409,60 @@ export class IosCatManager {
     // console.log('memberRawPayloadDict:', memberRawPayloadDict)
     log.verbose('PuppetIoscatManager', 'getRoomMemberIdList(%s) length=%d', roomId, memberIdList.length)
     return memberIdList
+  }
+
+  public async sendTextMessage (
+    receiver: Receiver,
+    message: string,
+    messageType?: number,
+    atMembers?: string[],
+  ): Promise<void> {
+    log.verbose('PuppetIoscat', 'sendMessage(%s, %s)', receiver, message)
+    if (! this.cacheRoomMemberRawPayload) {
+      throw new Error('cache no init')
+    }
+    const data: PBIMSendMessageReq = new PBIMSendMessageReq()
+    data.serviceID = CONSTANT.serviceID
+    data.fromCustomID = this.options.token || ioscatToken() // WECHATY_PUPPET_IOSCAT_TOKEN
+    data.content = message
+    if (messageType) {
+      data.type = messageType
+    }
+    // 私聊
+    if (receiver.contactId) {
+      data.toCustomID = receiver.contactId
+      data.sessionType = CONSTANT.P2P
+    } else if (receiver.roomId) {
+      // 群聊
+      data.sessionType = CONSTANT.G2G
+      data.toCustomID = receiver.roomId
+      // Notice: The member in the room whose alias may not exist,
+      // if that, we use the contact's nickname
+      if (atMembers) {
+        let atMemberName = ''
+        for (const memberId of atMembers) {
+          const memberPayload = await this.roomMemberRawpayload(receiver.roomId)
+          if (!memberPayload) {
+            throw new Error('Room of roomId is no exist')
+          }
+          const memberInfo = memberPayload[memberId]
+          if (memberInfo && memberInfo.alias) {
+            atMemberName = '@' + memberInfo.alias + ' '
+          } else {
+            const contactPayload = await this.contactRawPayload(memberId)
+            if (!contactPayload) {
+              throw new Error('The contact of id no exist')
+            }
+            atMemberName = '@' + contactPayload.nickname + ' '
+          }
+        }
+        data.content = atMemberName + data.content
+      }
+
+    } else {
+      throw new Error('接收人名称不能为空')
+    }
+    this.API.imApiSendMessagePost(data)
   }
 
   public async checkOnline () {

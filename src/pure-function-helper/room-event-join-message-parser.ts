@@ -17,6 +17,9 @@ import {
   splitEnglishNameList,
 }                         from './split-name'
 
+import { tranferXmlToText } from './room-event-xml-message-parser'
+
+import { log } from '../config'
 /**
  *
  * 1. Room Join Event
@@ -77,9 +80,9 @@ const ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_EN = [
   /^"(.+)" joined the group chat via the QR Code shared by "(.+)"/,
 ]
 
-export function roomJoinEventMessageParser (
+export async function roomJoinEventMessageParser (
   rawPayload: IoscatMessageRawPayload,
-): null | PuppetRoomJoinEvent {
+): Promise<null | PuppetRoomJoinEvent> {
 
   if (!isPayload(rawPayload)) {
     return null
@@ -89,9 +92,10 @@ export function roomJoinEventMessageParser (
   if (!roomId || !isRoomId(roomId)) {
     return null
   }
+  let content = rawPayload.payload.content
+  content = await tranferXmlToText(content)
 
-  const content = rawPayload.payload.content
-
+  log.silly('roomJoinEventMessageParser', 'content = %s', content)
   /**
    * when the message is a Recalled type, bot can undo the invitation
    */

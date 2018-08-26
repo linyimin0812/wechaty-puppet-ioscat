@@ -12,6 +12,10 @@ import {
   isRoomId,
 }               from './is-type'
 
+import { tranferXmlToText } from './room-event-xml-message-parser'
+
+import { log } from '../config'
+
 /**
  *
  * 2. Room Leave Event
@@ -37,16 +41,19 @@ const ROOM_LEAVE_BOT_REGEX_LIST = [
   /^(你)被"([^"]+?)"移出群聊/,
 ]
 
-export function roomLeaveEventMessageParser (
+export async function roomLeaveEventMessageParser (
   rawPayload: IoscatMessageRawPayload,
-): null | PuppetRoomLeaveEvent {
+): Promise<null | PuppetRoomLeaveEvent> {
 
   if (!isPayload(rawPayload)) {
     return null
   }
 
   const roomId  = rawPayload.payload.platformGid
-  const content = rawPayload.payload.content
+  let content = rawPayload.payload.content
+  content = await tranferXmlToText(content)
+
+  log.silly('roomLeaveEventMessageParser', 'content = %s', content)
 
   if (!roomId) {
     throw new Error('roomId is not exsit')

@@ -756,8 +756,9 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async roomMemberRawPayloadParser (rawPayload: IosCatRoomMemberRawPayload): Promise<RoomMemberPayload> {
-    log.verbose('PuppetIoscat', 'roomMemberRawPayloadParser(%s)', rawPayload)
-    const contactPayload = await this.iosCatManager.roomRawPayload(rawPayload.platformUid)
+    log.verbose('PuppetIoscat', 'roomMemberRawPayloadParser(%s)', JSON.stringify(rawPayload))
+    // const contactPayload = await this.iosCatManager.roomRawPayload(rawPayload.platformUid)
+    const contactPayload = await this.iosCatManager.roomRawPayload(rawPayload.platformGid)
     return {
       avatar: contactPayload.avatar,
       id: rawPayload.platformUid,
@@ -862,15 +863,18 @@ export class PuppetIoscat extends Puppet {
     return
   }
 
+  // TODO: Add support
   public async roomInvitationAccept (roomInvitationId: string): Promise<void> {
     log.silly('roomInvitationAccept (%s)', roomInvitationId)
   }
 
+  // TODO: Add support
   public async roomInvitationRawPayload (rawPayload: any): Promise<any> {
     log.silly('roomInvitationRawPayload (%o)', rawPayload)
     return {} as any
   }
 
+  // Add support
   public async roomInvitationRawPayloadParser (rawPayload: any): Promise<any> {
     log.silly('roomInvitationRawPayloadParser (%o)', rawPayload)
     return {} as any
@@ -882,8 +886,8 @@ export class PuppetIoscat extends Puppet {
   protected async onIosCatMessageRoomEventJoin (rawPayload: IoscatMessageRawPayload): Promise<void> {
     log.verbose('PuppetIoscat', 'onIosCatMessageRoomEventJoin({id=%s})', rawPayload.id)
 
-    const roomJoinEvent = roomJoinEventMessageParser(rawPayload)
-
+    const roomJoinEvent = await roomJoinEventMessageParser(rawPayload)
+    log.silly('roomJoinEvent: %s', JSON.stringify(roomJoinEvent))
     if (roomJoinEvent) {
 
       const inviteeNameList = roomJoinEvent.inviteeNameList
@@ -932,8 +936,8 @@ export class PuppetIoscat extends Puppet {
   protected async onIoscatMessageRoomEventLeave (rawPayload: IoscatMessageRawPayload): Promise<void> {
     log.verbose('PuppetIoscat', 'onPadchatMessageRoomEventLeave({id=%s})', rawPayload.id)
 
-    const roomLeaveEvent = roomLeaveEventMessageParser(rawPayload)
-
+    const roomLeaveEvent = await roomLeaveEventMessageParser(rawPayload)
+    log.silly('PuppetIoscat', 'onIoscatMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
     if (roomLeaveEvent) {
       const leaverNameList = roomLeaveEvent.leaverNameList
       const removerName    = roomLeaveEvent.removerName
@@ -976,7 +980,7 @@ export class PuppetIoscat extends Puppet {
     log.verbose('PuppetIoscat', 'onIoscatMessageRoomEventTopic({id=%s})', rawPayload.id)
 
     const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
-
+    log.silly('PuppetIoscat', 'onIoscatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
     log.silly(JSON.stringify(rawPayload, null, 2))
 
     if (roomTopicEvent) {

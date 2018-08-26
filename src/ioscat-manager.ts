@@ -38,6 +38,10 @@ export class IosCatManager {
   }>
   private cacheRoomRawPayload?: FlashStoreSync<string, IosCatRoomRawPayload>
 
+  // FIXME: Use id not use platformUid, and Use gid not use platformGid
+  private contactIdMap: Map<string, string> = new Map<string, string>()
+  private roomIdMap: Map<string, string> = new Map<string, string>()
+
   /**
    * swagger generator api
    */
@@ -222,6 +226,7 @@ export class IosCatManager {
             }
             this.cacheRoomRawPayload.set(roomId, roomRawPayload)
             await this.roomMemberRawpayload(room.platformGid)
+            this.roomIdMap.set(roomId, roomRawPayload.id)
           }
         } else {
           throw new Error(`${platformUid} has not room`)
@@ -237,6 +242,7 @@ export class IosCatManager {
       if (body.code === 0) {
         for (const contact of body.data) {
           this.cacheContactRawPayload.set(contact.platformUid, contact as any)
+          this.contactIdMap.set(contact.platformUid, contact.id + '')
         }
       }
       log.silly('PuppetIosCatManager', 'syncContactsAndRooms() syncing Contact(%d) & Room(%d) ...',
@@ -263,7 +269,7 @@ export class IosCatManager {
   public roomMemberRawPayloadDirty (
     roomId: string,
   ): void {
-    log.verbose('PuppetIosCatManager', 'roomMemberRawPayloadDirty(%d)', roomId)
+    log.verbose('PuppetIosCatManager', 'roomMemberRawPayloadDirty(%s)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited')
     }
@@ -293,25 +299,31 @@ export class IosCatManager {
     }
 
     // room is not exist in cache, get it from infrastructure API
-    const response = await this.GROUP_API.imGroupRetrieveGet(id)
-    // FIXME: should not use `as any`
-    const rawPayload: IosCatRoomRawPayload = response.body.data as any
-
-    // get memberIdList from infrastructure API with roomId
-    const listMemberResponse = await this.GROUP_MEMBER_API.imGroupMemberListGet(CONSTANT.serviceID, id, CONSTANT.NAN,
-      CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
-    const members = listMemberResponse.body.data
-    // if the room of id is not exist, the result will not involved data filed
-    if (rawPayload && (members && members.content.length > 0)) {
-      const memberIdList = await members.content.map((value: any, index: any) => {
-        return value.platformUid
-      })
-      rawPayload.memberIdList = memberIdList
-      log.verbose('PuppetIosCatManager', 'rawPayload: %s', JSON.stringify(rawPayload, null, 2))
-      this.cacheRoomRawPayload.set(id, rawPayload)
-      return rawPayload
+    const body = (await this.GROUP_MEMBER_API.imGroupMemberListGet(CONSTANT.serviceID, id)).body
+    if (body.code === 0 && body.data && body.data.content.length > 0) {
+      const gid = body.data.content[0].gid + ''
+      const response = await this.GROUP_API.imGroupRetrieveGet(gid)
+      // FIXME: should not use `as any`
+      const rawPayload: IosCatRoomRawPayload = response.body.data as any
+      // get memberIdList from infrastructure API with roomId
+      const listMemberResponse = await this.GROUP_MEMBER_API.imGroupMemberListGet(CONSTANT.serviceID, id, CONSTANT.NAN,
+        CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
+      const members = listMemberResponse.body.data
+      // if the room of id is not exist, the result will not involved data filed
+      if (rawPayload && (members && members.content.length > 0)) {
+        const memberIdList = await members.content.map((value: any, index: any) => {
+          return value.platformUid
+        })
+        rawPayload.memberIdList = memberIdList
+        log.verbose('PuppetIosCatManager', 'rawPayload: %s', JSON.stringify(rawPayload, null, 2))
+        this.cacheRoomRawPayload.set(id, rawPayload)
+        return rawPayload
+      } else {
+        throw new Error(`room of id = ${id} is not exist`)
+      }
+    } else {
+      throw new Error(`room of id = ${id} is not exist`)
     }
-    throw new Error('room of id is not exist')
   }
 
   public async roomMemberRawpayload (roomId: string): Promise<{ [contactId: string]: IosCatRoomMemberRawPayload }> {
@@ -352,7 +364,8 @@ export class IosCatManager {
       }
       return contactPayload
     }
-    const id = (await this.contactRawPayload(contactId)).id
+    const id = this.contactIdMap.get(contactId)
+    // FIXME: Use id ,not use platformUid
     const response = await this.CONTACT_API.imContactRetrieveGet(id)
     if (response.body.code === 0 && response.body.data) {
       // FIXME: should not use `as any`

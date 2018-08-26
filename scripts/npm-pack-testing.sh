@@ -17,6 +17,7 @@ cp tests/fixtures/smoke-testing.ts "$TMPDIR"
 cd $TMPDIR
 npm init -y
 npm install *-*.*.*.tgz \
+  @types/quick-lru \
   @types/lru-cache \
   @types/node \
   @types/normalize-package-data \

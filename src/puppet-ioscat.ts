@@ -457,12 +457,8 @@ export class PuppetIoscat extends Puppet {
    * Message
    *
    */
-  // TODO:
   public async messageFile (id: string): Promise<FileBox> {
-    return FileBox.fromBase64(
-      'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
-      'mock-file' + id + '.txt',
-    )
+    throw new Error('Send file not supported yet')
   }
 
   public async messageRawPayload (id: string): Promise<IoscatMessageRawPayload> {
@@ -505,21 +501,20 @@ export class PuppetIoscat extends Puppet {
 
   }
 
-  // TODO:
   public async messageSendFile (
     receiver: Receiver,
     file: FileBox,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'messageSend(%s, %s)', receiver, file)
+    throw new Error('Send file not supported yet')
   }
 
-  // TODO:
   public async messageSendContact (
     receiver: Receiver,
     contactId: string,
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
-    return
+    throw new Error('Send Contact not supported yet')
   }
 
   // TODO:

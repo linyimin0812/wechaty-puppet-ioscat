@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-ioscat",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "Puppet Ios Cat for Wechaty",
   "main": "dist/src/index.js",
   "directories": {

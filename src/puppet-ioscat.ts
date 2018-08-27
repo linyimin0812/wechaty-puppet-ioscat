@@ -1041,22 +1041,25 @@ export class PuppetIoscat extends Puppet {
     }
   }
   public async  contactSelfQrcode (): Promise<string> {
-    return 'contactSelfQrcode'
+    if (! this.id) {
+      throw new Error('Please set it in environment variable WECHATY_PUPPET_IOSCAT_TOKEN, and restart')
+    }
+    const contactPayload = await this.contactRawPayload(this.id)
+    return contactPayload.avatar
   }
   public async contactSelfName (newName: string) : Promise<void> {
     if (!this.iosCatManager) {
       throw new Error('no padchat manager')
     }
 
-    // await this.iosCatManager.updateSelfName(newName)
+    throw new Error('Ioscat not supports contactSelfSignature yet')
   }
 
   public async contactSelfSignature (signature: string) : Promise<void> {
     if (!this.iosCatManager) {
       throw new Error('no padchat manager')
     }
-
-    // await this.iosCatManager.updateSelfSignature(signature)
+    throw new Error('Ioscat not supports contactSelfSignature yet')
   }
 }
 

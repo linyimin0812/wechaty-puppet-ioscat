@@ -364,16 +364,43 @@ export class IosCatManager {
       }
       return contactPayload
     }
-    const id = this.contactIdMap.get(contactId)
-    // FIXME: Use id ,not use platformUid
-    const response = await this.CONTACT_API.imContactRetrieveGet(id)
-    if (response.body.code === 0 && response.body.data) {
-      // FIXME: should not use `as any`
-      const rawPayload: IosCatContactRawPayload = response.body.data as any
-      this.cacheContactRawPayload.set(contactId, rawPayload)
-      return rawPayload
+    const platformUid = this.options.token || ioscatToken()
+    if (contactId === platformUid) {
+      const body = (await this.API.imApiProfileInfoGet(CONSTANT.serviceID, platformUid)).body
+      if (body.code === 0 && body.data) {
+        const result: IosCatContactRawPayload = {
+          avatar: body.data.avatar,
+          city: body.data.city,
+          country: body.data.country,
+          ctime: body.data.ctime,
+          customID: body.data.customID,
+          extra: body.data.extra,
+          gender: body.data.gender,
+          id: body.data.id + '',
+          nickname: body.data.nickname,
+          platformUid: body.data.platformUid,
+          serviceID: body.data.serviceID,
+          signature: body.data.signature,
+          state: body.data.state,
+          tags: [body.data.tags],
+        }
+        return result
+      } else {
+        throw new Error(`contact = ${contactId} not exist`)
+      }
+    } else {
+      const id = this.contactIdMap.get(contactId)
+      // FIXME: Use id ,not use platformUid
+      const response = await this.CONTACT_API.imContactRetrieveGet(id)
+      if (response.body.code === 0 && response.body.data) {
+        // FIXME: should not use `as any`
+        const rawPayload: IosCatContactRawPayload = response.body.data as any
+        this.cacheContactRawPayload.set(contactId, rawPayload)
+        return rawPayload
+      }
+      log.error('contactRawPayload', 'length = %d', this.contactIdMap.size)
+      throw new Error(`contact = ${id} not exist`)
     }
-    throw new Error('contact not exist')
   }
 
   public getContactList (): string[] {

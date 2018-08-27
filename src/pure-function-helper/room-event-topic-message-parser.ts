@@ -12,6 +12,9 @@ import {
   isRoomId,
 }               from './is-type'
 
+import { log } from '../config'
+import { tranferXmlToText } from './room-event-xml-message-parser'
+
 /**
  *
  * 3. Room Topic Event
@@ -27,17 +30,20 @@ const ROOM_TOPIC_YOU_REGEX_LIST = [
   /^(你)修改群名为“(.+)”$/,
 ]
 
-export function roomTopicEventMessageParser (
+export async function roomTopicEventMessageParser (
   rawPayload: IoscatMessageRawPayload,
-): null | PuppetRoomTopicEvent {
+): Promise<null | PuppetRoomTopicEvent> {
 
   if (!isPayload(rawPayload)) {
     return null
   }
 
   const roomId  = rawPayload.payload.platformGid
-  const content = rawPayload.payload.content
-
+  let content = rawPayload.payload.content
+  if (content.indexOf('<sysmsg type="sysmsgtemplate">') > 0) {
+    content = await tranferXmlToText(content)
+  }
+  log.silly('roomTopicEventMessageParser', 'content = %s', content)
   if (!roomId) {
     throw new Error('roomId is not exist')
   }

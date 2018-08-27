@@ -979,7 +979,7 @@ export class PuppetIoscat extends Puppet {
   protected async onIoscatMessageRoomEventTopic (rawPayload: IoscatMessageRawPayload): Promise<void> {
     log.verbose('PuppetIoscat', 'onIoscatMessageRoomEventTopic({id=%s})', rawPayload.id)
 
-    const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
+    const roomTopicEvent = await roomTopicEventMessageParser(rawPayload)
     log.silly('PuppetIoscat', 'onIoscatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
     log.silly(JSON.stringify(rawPayload, null, 2))
 

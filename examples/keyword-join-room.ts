@@ -33,19 +33,5 @@ bot.on('login', async (user) => {
                           inviterId,
             )
   })
-  .on('room-leave', async (roomId, leaverIdList) => {
-    log.info('room-leave', 'roomId:%s, leaverIdList=%s',
-                            roomId,
-                            JSON.stringify(leaverIdList),
-            )
-  })
-  .on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
-    log.info('room-topic', 'roomId:%s, newTopic=%s, oldName=%s, changerId=%s',
-                            roomId,
-                            newTopic,
-                            oldTopic,
-                            changerId,
-            )
-  })
 
 bot.start()

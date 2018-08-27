@@ -1,4 +1,10 @@
-import { Wechaty } from 'wechaty'
+import {
+  Contact,
+  Message,
+  Room,
+  Wechaty,
+} from 'wechaty'
+import { ContactSelf } from 'wechaty/dist/src/user'
 import { PuppetIoscat } from '../src/'
 import { log } from '../src/config'
 
@@ -8,10 +14,10 @@ const puppet = new PuppetIoscat({
 const bot = new Wechaty({
   puppet,
 })
-bot.on('login', async (user) => {
+bot.on('login', async (user: ContactSelf) => {
   log.silly(`login: ${user}`)
 })
-  .on('message', async (message) => {
+  .on('message', async (message: Message) => {
     const from = message.from()
     if (! message.self() && from) {
       const content = message.content()
@@ -23,10 +29,10 @@ bot.on('login', async (user) => {
       }
     }
   })
-  .on('error', err => {
+  .on('error', (err: Error) => {
     log.error('error', err)
   })
-  .on('room-join', async (roomId, inviteeIdList, inviterId) => {
+  .on('room-join', async (roomId: Room, inviteeIdList: Contact[], inviterId: Contact) => {
     log.info('room-join', 'roomId:%s, inviteeIdList=%s, inviterId=%s',
                           roomId,
                           JSON.stringify(inviteeIdList),

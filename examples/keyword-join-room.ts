@@ -1,38 +1,30 @@
-import {
-  Contact,
-  Message,
-  Room,
-  Wechaty,
-} from 'wechaty'
-import { ContactSelf } from 'wechaty/dist/src/user'
 import { PuppetIoscat } from '../src/'
 import { log } from '../src/config'
 
 const puppet = new PuppetIoscat({
   token: 'wxid_tdax1huk5hgs12',
 })
-const bot = new Wechaty({
-  puppet,
+puppet.on('login', async (userId: string) => {
+  log.silly(`login: ${userId}`)
 })
-bot.on('login', async (user: ContactSelf) => {
-  log.silly(`login: ${user}`)
-})
-  .on('message', async (message: Message) => {
-    const from = message.from()
-    if (! message.self() && from) {
-      const content = message.content()
+  .on('message', async (messageId: string) => {
+    const messagePayload = await puppet.messagePayload(messageId)
+    const selfId = puppet.selfId()
+    const fromId = messagePayload.fromId
+    if (selfId !== fromId && fromId) {
+      const content = messagePayload.text
       if (content === '入群') {
-        const room = await bot.Room.find('直播一群')
-        if (room) {
-          room.add(from)
+        const roomIdList = await puppet.roomSearch({ topic: '直播一群' })
+        if (roomIdList.length) {
+          await puppet.roomAdd(roomIdList[0], fromId)
         }
       }
     }
   })
-  .on('error', (err: Error) => {
+  .on('error', (err: string) => {
     log.error('error', err)
   })
-  .on('room-join', async (roomId: Room, inviteeIdList: Contact[], inviterId: Contact) => {
+  .on('room-join', async (roomId: string, inviteeIdList: string[], inviterId: string) => {
     log.info('room-join', 'roomId:%s, inviteeIdList=%s, inviterId=%s',
                           roomId,
                           JSON.stringify(inviteeIdList),
@@ -40,4 +32,5 @@ bot.on('login', async (user: ContactSelf) => {
             )
   })
 
-bot.start()
+puppet.start()
+.catch(e => log.error('Puppet', 'start rejectino: %s', e))

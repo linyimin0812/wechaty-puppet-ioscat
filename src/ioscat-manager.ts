@@ -211,8 +211,15 @@ export class IosCatManager {
        * room
        */
       try {
-        const response = await this.GROUP_API.imGroupListGet(CONSTANT.serviceID, platformUid,
-        CONSTANT.NULL, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.NAN, CONSTANT.LIMIT)
+        const response = await this.GROUP_API.imGroupListGet(
+          CONSTANT.serviceID,
+          platformUid,
+          CONSTANT.NULL,
+          CONSTANT.NAN,
+          CONSTANT.NAN,
+          CONSTANT.NAN,
+          CONSTANT.LIMIT,
+        )
         const roomList = response.body.data.content
         log.silly('PuppetIosCatManager', `syncRooms(), length %s`, roomList.length)
         // if not rooms exist, the result roomList will be []
@@ -275,6 +282,7 @@ export class IosCatManager {
     }
     this.cacheRoomMemberRawPayload.delete(roomId)
   }
+
   public roomRawPayloadDirty (
     roomId: string,
   ): void {
@@ -369,20 +377,20 @@ export class IosCatManager {
       const body = (await this.API.imApiProfileInfoGet(CONSTANT.serviceID, platformUid)).body
       if (body.code === 0 && body.data) {
         const result: IosCatContactRawPayload = {
-          avatar: body.data.avatar,
-          city: body.data.city,
-          country: body.data.country,
-          ctime: body.data.ctime,
-          customID: body.data.customID,
-          extra: body.data.extra,
-          gender: body.data.gender,
-          id: body.data.id + '',
-          nickname: body.data.nickname,
-          platformUid: body.data.platformUid,
-          serviceID: body.data.serviceID,
-          signature: body.data.signature,
-          state: body.data.state,
-          tags: [body.data.tags],
+          avatar      : body.data.avatar,
+          city        : body.data.city,
+          country     : body.data.country,
+          ctime       : body.data.ctime,
+          customID    : body.data.customID,
+          extra       : body.data.extra,
+          gender      : body.data.gender,
+          id          : body.data.id + '',
+          nickname    : body.data.nickname,
+          platformUid : body.data.platformUid,
+          serviceID   : body.data.serviceID,
+          signature   : body.data.signature,
+          state       : body.data.state,
+          tags        : [body.data.tags],
         }
         return result
       } else {

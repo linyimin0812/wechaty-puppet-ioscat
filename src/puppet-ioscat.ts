@@ -382,15 +382,15 @@ export class PuppetIoscat extends Puppet {
       contactType = ContactType.Official
     }
     const payload: ContactPayload = {
-      avatar: rawPayload.avatar,
-      city: rawPayload.city,
+      avatar : rawPayload.avatar,
+      city   : rawPayload.city,
       gender,
-      id: rawPayload.platformUid,
-      name: rawPayload.nickname,
-      province: rawPayload.state,
-      signature: rawPayload.signature,
-      type: contactType,
-      weixin: rawPayload.customID
+      id        : rawPayload.platformUid,
+      name      : rawPayload.nickname,
+      province  : rawPayload.state,
+      signature : rawPayload.signature,
+      type      : contactType,
+      weixin    : rawPayload.customID
     }
     return payload
   }

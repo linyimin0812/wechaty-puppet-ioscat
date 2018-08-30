@@ -2,8 +2,10 @@
 
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
+import sinon from 'sinon'
 
-import { PuppetIoscat } from './puppet-ioscat'
+import { IosCatManager }  from './ioscat-manager'
+import { PuppetIoscat }   from './puppet-ioscat'
 
 class PuppetMockTest extends PuppetIoscat {
 }
@@ -12,6 +14,11 @@ test('PuppetMock restart without problem', async (t) => {
   const puppet = new PuppetMockTest({
     token: 'wxid_tdax1huk5hgs12',
   })
+
+  const sandbox = sinon.createSandbox()
+  const iosCatManager: IosCatManager = (puppet as any).iosCatManager
+  sandbox.stub(iosCatManager, 'syncContactsAndRooms').resolves()
+
   try {
     for (let i = 0; i < 3; i++) {
       await puppet.start()
@@ -23,5 +30,7 @@ test('PuppetMock restart without problem', async (t) => {
     // tslint:disable:no-console
     console.error(e)
     t.fail(e)
+  } finally {
+    sandbox.restore()
   }
 })

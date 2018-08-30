@@ -476,12 +476,8 @@ export class IosCatManager {
     if (messageType) {
       data.type = messageType
     }
-    // 私聊
-    if (receiver.contactId) {
-      data.toCustomID = receiver.contactId
-      data.sessionType = CONSTANT.P2P
-    } else if (receiver.roomId) {
-      // 群聊
+    if (receiver.roomId) {
+      // 1. 群聊 first
       data.sessionType = CONSTANT.G2G
       data.toCustomID = receiver.roomId
       // Notice: The member in the room whose alias may not exist,
@@ -506,7 +502,10 @@ export class IosCatManager {
         }
         data.content = atMemberName + data.content
       }
-
+    } else if (receiver.contactId) {
+      // 2. 私聊 second
+      data.toCustomID = receiver.contactId
+      data.sessionType = CONSTANT.P2P
     } else {
       throw new Error('接收人名称不能为空')
     }

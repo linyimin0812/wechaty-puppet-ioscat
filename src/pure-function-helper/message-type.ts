@@ -13,10 +13,10 @@ export function messageType (
   rawPayload: IoscatMessageRawPayload,
 ): MessageType {
 
-  const payload = rawPayload.payload
-  const payloadMessageType = payload.messageType
+  const payload                = rawPayload.payload
+  const payloadMessageType     = payload.messageType
   const payloadPlatformMsgType = payload.platformMsgType
-  const payloadType = {
+  const payloadType            = {
     messageType: payloadMessageType,
     platformMsgType: payloadPlatformMsgType,
   }

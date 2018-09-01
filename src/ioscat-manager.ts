@@ -30,9 +30,9 @@ import { PuppetOptions, Receiver } from 'wechaty-puppet'
 
 export class IosCatManager {
   // persistent store
-  private cacheContactRawPayload?:    FlashStoreSync<string, IosCatContactRawPayload>
-  private cacheRoomMemberRawPayload?: FlashStoreSync<string, {[contactId: string]: IosCatRoomMemberRawPayload}>
-  private cacheRoomRawPayload?:       FlashStoreSync<string, IosCatRoomRawPayload>
+  private cacheContactRawPayload?    : FlashStoreSync<string, IosCatContactRawPayload>
+  private cacheRoomMemberRawPayload? : FlashStoreSync<string, {[contactId: string]: IosCatRoomMemberRawPayload}>
+  private cacheRoomRawPayload?       : FlashStoreSync<string, IosCatRoomRawPayload>
 
   // FIXME: Use id not use platformUid, and Use gid not use platformGid
   private contactIdMap:     Map<string, string> = new Map<string, string>()
@@ -41,12 +41,12 @@ export class IosCatManager {
   /**
    * swagger generator api
    */
-  private API:              ApiApi              = new ApiApi()
-  private GROUP_API:        GroupApi            = new GroupApi()
-  private GROUP_MEMBER_API: GroupMemberApi      = new GroupMemberApi()
-  private CONTACT_API:      ContactApi          = new ContactApi()
-  private PROFILE_API:      ProfileApi          = new ProfileApi()
-  public timer:             NodeJS.Timer | undefined        // `undefined` stands for the initail value
+  private API              : ApiApi              = new ApiApi()
+  private GROUP_API        : GroupApi            = new GroupApi()
+  private GROUP_MEMBER_API : GroupMemberApi      = new GroupMemberApi()
+  private CONTACT_API      : ContactApi          = new ContactApi()
+  private PROFILE_API      : ProfileApi          = new ProfileApi()
+  public  timer            : NodeJS.Timer | undefined                    // `undefined` stands for the initail value
   constructor (
     public options: PuppetOptions = {},
   ) {
@@ -468,11 +468,11 @@ export class IosCatManager {
   }
 
   public async sendMessage (
-    receiver: Receiver,
-    message: string,
-    messageType?: number,
-    atMembers?: string[],
-  ): Promise<void> {
+    receiver     : Receiver,
+    message      : string,
+    messageType? : number,
+    atMembers?   : string[],
+    )            : Promise<void> {
     log.verbose('PuppetIoscat', 'sendMessage(%s, %s)', receiver, message)
     if (! this.cacheRoomMemberRawPayload) {
       throw new Error('cache no init')

@@ -11,13 +11,13 @@ export function qrCodeForChatie (): FileBox {
 }
 
 export const CONSTANT = {
-  G2G: 2,
-  LIMIT: 1000,
-  MESSAGE: `periodic_message`,
-  NAN: 0,
-  NULL: '',
-  P2P: 1,
-  serviceID: 13,
+  G2G       : 2,
+  LIMIT     : 1000,
+  MESSAGE   : `periodic_message`,
+  NAN       : 0,
+  NULL      : '',
+  P2P       : 1,
+  serviceID : 13,
 }
 
 /**

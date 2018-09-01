@@ -27,14 +27,14 @@ export function messageRawPayloadParser (
   const type = messageType(rawPayload)
 
   const payloadBase = {
-    id: rawPayload.id,
-    timestamp: rawPayload.payload.sendTime,   // iosCat message timestamp is seconds
+    id        : rawPayload.id,
+    timestamp : rawPayload.payload.sendTime,   // iosCat message timestamp is seconds
     type,
   } as {
-    id: string,
-    timestamp: number,
-    type: MessageType,
-    filename?: string,
+    id        : string,
+    timestamp : number,
+    type      : MessageType,
+    filename? : string,
   }
 
   // TODO: not deal with file, just realise the text
@@ -46,11 +46,10 @@ export function messageRawPayloadParser (
   //   payloadBase.filename = messageFileName(rawPayload) || undefined
   // }
 
-  let fromId: undefined | string
-  let roomId: undefined | string
-  let toId: undefined | string
-
-  let text: undefined | string
+  let fromId : undefined | string
+  let roomId : undefined | string
+  let toId   : undefined | string
+  let text   : undefined | string
 
   /**
    * sessionType = 1 : P2P

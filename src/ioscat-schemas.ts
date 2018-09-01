@@ -1,7 +1,7 @@
 export interface IosCatMessageType {
   [type: string]: {
-    messageType: number,
-    platformMsgType?: number,
+    messageType      : number,
+    platformMsgType? : number,
   }
 }
 /**
@@ -23,24 +23,24 @@ export interface IosCatMessageType {
  * 通知, 10000
  */
 export const IosCatMessage: IosCatMessageType = {
-  Animation         : { messageType: 13, platformMsgType: 47 },
-  File              : { messageType: 19, platformMsgType: 49 },
-  FriendRequest     : { messageType: 12 },
-  Image             : { messageType: 3, platformMsgType: 3 },
-  Link              : { messageType: 17, platformMsgType: 49 },
-  Location          : { messageType: 11, platformMsgType: 48 },
-  LuckyMoney        : { messageType: 7 },
-  Notify            : { messageType: 10000 },
-  RoomJoinOrLeave   : { messageType: 17, platformMsgType: 10002 },
-  RoomTopic         : { messageType: 10000, platformMsgType: 10000 },
-  ShareCard         : { messageType: 5, platformMsgType: 42 },
-  Template          : { messageType: 18 },
-  Text              : { messageType: 1, platformMsgType: 1 },
-  Transfer          : { messageType: 8 },
-  Video             : { messageType: 4, platformMsgType: 43 },
-  VideoChat         : { messageType: 14 },
-  Voice             : { messageType: 2, platformMsgType: 34 },
-  VoiceChat         : { messageType: 15 },
+  Animation       : { messageType: 13, platformMsgType: 47 },
+  File            : { messageType: 19, platformMsgType: 49 },
+  FriendRequest   : { messageType: 12 },
+  Image           : { messageType: 3, platformMsgType: 3 },
+  Link            : { messageType: 17, platformMsgType: 49 },
+  Location        : { messageType: 11, platformMsgType: 48 },
+  LuckyMoney      : { messageType: 7 },
+  Notify          : { messageType: 10000 },
+  RoomJoinOrLeave : { messageType: 17, platformMsgType: 10002 },
+  RoomTopic       : { messageType: 10000, platformMsgType: 10000 },
+  ShareCard       : { messageType: 5, platformMsgType: 42 },
+  Template        : { messageType: 18 },
+  Text            : { messageType: 1, platformMsgType: 1 },
+  Transfer        : { messageType: 8 },
+  Video           : { messageType: 4, platformMsgType: 43 },
+  VideoChat       : { messageType: 14 },
+  Voice           : { messageType: 2, platformMsgType: 34 },
+  VoiceChat       : { messageType: 15 },
 }
 export interface IoscatMessageRawPayload {
 
@@ -109,24 +109,24 @@ export interface IoscatMessageRawPayload {
 
   id     : string,   // 消息ID
   payload: {
-    id?                     : string,       // message id
-    profileContactID?       : string,       // 运营号的contactID
-    profilePlatformUid      : string,       // 运营号平台Uid
-    profileCustomID         : string,       // 运营号平台自定义ID(微信号)
-    platformUid?            : string,       // 联系人平台Uid
-    customID?               : string,       // 联系人平台自定义ID(微信号)
-    platformGid?            : string,       // 平台群ID
-    direction               : number,       // 方向,相对于运营号 1 收到， 2 发出
-    messageType             : number,       // 消息类型
-    sessionType             : number,       // 会话类型 P2P=1, G2G=2
-    platformMsgType         : number,       // 平台消息类型
-    content                 : string,       // 消息内容
-    revoke                  : number,       // 是否撤销
-    sendTime                : number,       // 消息实际发送时间
-    snapshot                : string,       // 快照
-    serviceID               : number,       // 服务ID
-    platformMsgID           : string,       // 平台消息ID
-    deviceID                : string        // 设备唯一ID e.g UDID IMEI
+    id?                : string,   // message id
+    profileContactID?  : string,   // 运营号的contactID
+    profilePlatformUid : string,   // 运营号平台Uid
+    profileCustomID    : string,   // 运营号平台自定义ID(微信号)
+    platformUid?       : string,   // 联系人平台Uid
+    customID?          : string,   // 联系人平台自定义ID(微信号)
+    platformGid?       : string,   // 平台群ID
+    direction          : number,   // 方向,相对于运营号 1 收到， 2 发出
+    messageType        : number,   // 消息类型
+    sessionType        : number,   // 会话类型 P2P=1, G2G=2
+    platformMsgType    : number,   // 平台消息类型
+    content            : string,   // 消息内容
+    revoke             : number,   // 是否撤销
+    sendTime           : number,   // 消息实际发送时间
+    snapshot           : string,   // 快照
+    serviceID          : number,   // 服务ID
+    platformMsgID      : string,   // 平台消息ID
+    deviceID           : string    // 设备唯一ID e.g UDID IMEI
   },
   type: string,
 }
@@ -152,23 +152,23 @@ export interface IoscatFriendshipMessageRawPayload {
    *   "type": "ON_IM_RELATION_APPLY"
    * }
    */
-  id                          : string,     // message id for save
-  payload: {
-    id                        : string,     // friendship message id
-    profileContactID          : string,     // operator contact id
-    profilePlatformUid        : string,     // operator platform id
-    profileCustomID           : string,     // operator custom id(wechaty number)
-    contactID                 : string,     // applicant Contact id
-    platformUid               : string,     // applicant platform id
-    customID                  : string,     // applicant custom id
-    requestTime               : number,     // applicant time
-    requestDesc               : string,     // request description
-    status                    : number,     // ?
-    timelineBlockByAccount    : number,     // ?
-    serviceId                 : number,     // wechaty service id is a constant, who's value is 13
-    ctime                     : number,     // database create time
+  id      : string,   // message id for save
+  payload : {
+    id                     : string,   // friendship message id
+    profileContactID       : string,   // operator contact id
+    profilePlatformUid     : string,   // operator platform id
+    profileCustomID        : string,   // operator custom id(wechaty number)
+    contactID              : string,   // applicant Contact id
+    platformUid            : string,   // applicant platform id
+    customID               : string,   // applicant custom id
+    requestTime            : number,   // applicant time
+    requestDesc            : string,   // request description
+    status                 : number,   // ?
+    timelineBlockByAccount : number,   // ?
+    serviceId              : number,   // wechaty service id is a constant, who's value is 13
+    ctime                  : number,   // database create time
   },
-  type                        : string,     // message type, who's value is ON_IM_RELATION_APPLY
+  type : string,   // message type, who's value is ON_IM_RELATION_APPLY
 }
 export interface IosCatContactRawPayload {
   // {
@@ -191,21 +191,21 @@ export interface IosCatContactRawPayload {
   //   },
   //   "msg": ""
   // }
-  id: string,             // 系统分配运营号ID
-  platformUid: string,    // 平台uid
-  customID: string,       // 联系人平台自定义ID(微信号)
-  nickname: string,       // 昵称
-  avatar: string,         // 头像
-  gender: number,         // 性别(0-未知, 1-男,2-女)
-  country: string,        // 国家
-  state: string,          // 省份
-  city: string,           // 城市
-  signature: string,      // 签名
-  type?: number,           // 类型
-  serviceID: number,      // 服务号
-  extra: string,          // 扩展字段
-  ctime: number           // 记录数据库时间
-  tags: string[]          // 标签
+  id          : string,   // 系统分配运营号ID
+  platformUid : string,   // 平台uid
+  customID    : string,   // 联系人平台自定义ID(微信号)
+  nickname    : string,   // 昵称
+  avatar      : string,   // 头像
+  gender      : number,   // 性别(0-未知, 1-男,2-女)
+  country     : string,   // 国家
+  state       : string,   // 省份
+  city        : string,   // 城市
+  signature   : string,   // 签名
+  type?       : number,   // 类型
+  serviceID   : number,   // 服务号
+  extra       : string,   // 扩展字段
+  ctime       : number    // 记录数据库时间
+  tags        : string[]  // 标签
 
 }
 
@@ -222,59 +222,19 @@ export interface IosCatRoomMemberRawPayload {
   //   "loaded": 2,
   //   "ctime": 1524380855
   // }
-
-  /**
-   * 系统分配ID
-   */
-  id: number
-  /**
-   * 系统分配联系人ID
-   */
-  contactID: number
-  /**
-   * 平台uid
-   */
-  platformUid: string
-  /**
-   * 平台自定义ID
-   */
-  customID?: string
-  /**
-   * 系统分配群ID
-   */
-  gid: number
-  /**
-   * 平台群ID
-   */
-  platformGid: string
-  /**
-   * 成员别名
-   */
-  alias?: string
-  /**
-   * 成员来源
-   */
-  source?: string
-  /**
-   * 服务id
-   */
-  serviceID: number
-  /**
-   * 信息是否完整记录
-   */
-  loaded?: number
-  /**
-   * 扩展字段
-   */
-  extra?: string
-  /**
-   * 标签
-   */
-  tags?: string
-  /**
-   * 数据库记录创建时间
-   */
-  ctime?: number
+  id          : number,  // 系统分配ID
+  contactID   : number, // 系统分配联系人ID
+  platformUid : string,// 平台uid
+  customID?   : string,  // 平台自定义ID
+  gid         : number,  // 系统分配群ID
+  platformGid : string,  // 平台群ID
+  alias?      : string,  // 成员别名
+  source?     : string,  // 成员来源
+  serviceID   : number,  // 服务id
+  loaded?     : number,  // 消息是否完整记录
+  extra?      : string,  // 扩展字段
+  tags?       : string,  // 标签
+  ctime?      : number,  // 数据库记录创建时间
 }
 
 export interface IosCatRoomRawPayload {
@@ -291,77 +251,23 @@ export interface IosCatRoomRawPayload {
   //   "memberCount": 237,
   //   "serviceID": 13
   // }
-  /**
-   * 系统分配群ID
-   */
-  id: string,
-  /**
-   * 系统分配群主联系人ID
-   */
-  ownerContactID?: string,
-  /**
-   * 群主平台ID
-   */
-  ownerPlatformUid: string,
-  /**
-   * 群主自定义ID
-   */
-  ownerCustomID?: string,
-  /**
-   * 运营号系统分配联系人ID
-   */
-  profileContactID?: number,
-  /**
-   * 运营号平台Uid
-   */
-  profilePlatformUid: string,
-  /**
-   * 运营号平台自定义ID
-   */
-  profileCustomID?: string,
-  /**
-   * 群ID
-   */
-  platformGid: string,
-  /**
-   * 群名称
-   */
-  name: string,
-  /**
-   * 群头像
-   */
-  avatar: string,
-  /**
-   * 群公告
-   */
-  signature: string,
-  /**
-   * 群二维码
-   */
-  qrcode: string,
-  /**
-   * 二维码生成时间
-   */
-  qrcodeGenerateTime: number,
-  /**
-   * 录入系统时间
-   */
-  ctime: number,
-  /**
-   * 群成员数量
-   */
-  memberCount: number,
-  /**
-   * 服务id
-   */
-  serviceID: number,
-  /**
-   * 扩展字段
-   */
-  extra?: string,
-  /**
-   * 标签
-   */
-  tags?: string[],
-  memberIdList?             : string[]     // 群成员的ID
+  id                 : string,     // 系统分配群ID
+  ownerContactID?    : string,     // 系统分配群主联系ID
+  ownerPlatformUid   : string,     // 群主平台ID
+  ownerCustomID?     : string,     // 群主自定义ID
+  profileContactID?  : number,     // 运营号系统分配联系人ID
+  profilePlatformUid : string,     // 运营号平台Uid
+  profileCustomID?   : string,     // 运营号平台自定义ID
+  platformGid        : string,     // 群ID
+  name               : string,     // 群名称
+  avatar             : string,     // 群头像
+  signature          : string,     // 群公告
+  qrcode             : string,     // 群二维码
+  qrcodeGenerateTime : number,     // 二维码生成时间
+  ctime              : number,     // 录入系统时间
+  memberCount        : number,     // 群成员变量
+  serviceID          : number,     // 服务id
+  extra?             : string,     // 扩展字段
+  tags?              : string[],   // 标签
+  memberIdList?      : string[]    // 群成员的ID
 }

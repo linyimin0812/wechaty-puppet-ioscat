@@ -2,8 +2,8 @@ import * as amqp from 'amqplib'
 import { EventEmitter } from 'events'
 import { log } from './config'
 class IMSink {
-  private static connection: amqp.Connection
-  private static channel: amqp.Channel
+  private static connection : amqp.Connection
+  private static channel    : amqp.Channel
   public static event = new EventEmitter()
   public static async getConnection (): Promise<void> {
     log.silly('IMSink', 'getConnection()')

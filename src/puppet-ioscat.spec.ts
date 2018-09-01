@@ -15,7 +15,7 @@ test('PuppetMock restart without problem', async (t) => {
     token: 'wxid_tdax1huk5hgs12',
   })
 
-  const sandbox = sinon.createSandbox()
+  const sandbox                      = sinon.createSandbox()
   const iosCatManager: IosCatManager = (puppet as any).iosCatManager
   sandbox.stub(iosCatManager, 'syncContactsAndRooms').resolves()
 

@@ -10,18 +10,18 @@ interface XmlMember {
 }
 interface XmlLink {
   $: {
-    name: string,
-    type: string,
+    name : string,
+    type : string,
   },
   memberlist?: {
-    member: XmlMember | XmlMember[]
+    member : XmlMember | XmlMember[]
   },
-  separator?: string,
-  title?: string,
-  usernamelist?: {username: string} | Array<{username: string}>,
-  qrcode?: string,
-  plain?: string,
-  username: string,
+  separator?    : string,
+  title?        : string,
+  usernamelist? : {username: string} | Array<{username: string}>,
+  qrcode?       : string,
+  plain?        : string,
+  username      : string,
 }
 
 // type TemplateType = keyof typeof TEMPLATE_TYPE
@@ -35,9 +35,9 @@ interface XmlSchema {
         $: {
           type: string
         },
-        plain: '',
-        template: string,
-        link_list: {
+        plain     : '',
+        template  : string,
+        link_list : {
           link: XmlLink | XmlLink[]
         }
       }
@@ -58,15 +58,15 @@ export async function tranferXmlToText (message: string): Promise<string> {
   const xml = message.replace(/^[^\n]+\n/, '')
   log.silly(xml)
   const parse: XmlSchema = await xmlToJson(xml)
-  let template = parse.sysmsg.sysmsgtemplate.content_template.template
-  let links = parse.sysmsg.sysmsgtemplate.content_template.link_list.link
+  let   template         = parse.sysmsg.sysmsgtemplate.content_template.template
+  let   links            = parse.sysmsg.sysmsgtemplate.content_template.link_list.link
   log.silly('main', 'links: %s', JSON.stringify(links))
   if (! Array.isArray(links)) {
     links = [links]
   }
   for (const link of links) {
-    let content = ''
-    const name = link.$.name
+    let   content = ''
+    const name    = link.$.name
     if (link.memberlist) {
       if (! Array.isArray(link.memberlist.member)) {
         link.memberlist.member = [link.memberlist.member]
@@ -80,7 +80,7 @@ export async function tranferXmlToText (message: string): Promise<string> {
       continue
     }
     if (link.username) {
-      content = link.username
+      content  = link.username
       template = template.replace(`$${name}$`, content)
       log.silly('result:', template)
       continue
@@ -99,7 +99,7 @@ export async function tranferXmlToText (message: string): Promise<string> {
       continue
     }
     if (link.plain) {
-      content = link.plain
+      content  = link.plain
       template = template.replace(`$${name}$`, content)
       continue
     }

@@ -42,12 +42,12 @@ class IMSink {
   public static async close () {
     await new Promise((r) => setTimeout(r, 1 * 1000))
     if (!IMSink.channel) {
-      log.error('channel is null, dont need to close')
+      log.error('IMSink','close() %s', 'channel is null, dont need to close')
     } else {
       await IMSink.channel.close()
     }
     if (!IMSink.connection) {
-      return log.error('connection is null, dont need to close')
+      return log.error('IMSink','close() %s', 'connection is null, dont need to close')
     }
     await IMSink.connection.close()
     // remove allListener

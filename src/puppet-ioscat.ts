@@ -131,14 +131,12 @@ export class PuppetIoscat extends Puppet {
     // await some tasks...
     const topic = `im.topic.13.${this.options.token || ioscatToken()}`
 
-    log.silly('topic: ', topic)
+    log.silly('PuppetIoscat', 'start() listen topic: %s', topic)
     await IMSink.start(topic)
 
     this.state.on(true)
 
     this.id = this.options.token || ioscatToken()
-
-    await this.startWatchdog()
 
     this.initEventHook()
 
@@ -172,24 +170,25 @@ export class PuppetIoscat extends Puppet {
       if (msg.type === 'ON_IM_MESSAGE_RECEIVED') {
         // the msg type is IoscatMessageRawPayload
         msg = msg as IoscatMessageRawPayload
+        log.silly(
+          'PuppetIoscat',
+          'initEventHook() receives a message: %s', msg.payload.content)
         /**
-         * 1. if the message is period message, feed the dog
-         */
-        if (msg.payload.content === CONSTANT.MESSAGE) {
-          this.iosCatManager.dog.feed({ data: 'work' })
-          return
-        }
-
-        /**
-         * 2. Save message for future usage
+         * 1. Save message for future usage
          */
         msg.id = cuid()
         this.cacheIoscatMessagePayload.set(msg.id, msg)
         const payloadType = {
-          messageType: msg.payload.messageType,
+          messageType:     msg.payload.messageType,
           platformMsgType: msg.payload.platformMsgType,
         }
 
+        /**
+         * 2. Special event judge
+         *    1. room-join
+         *    2. room-leave
+         *    3. room-topic
+         */
         if (equals(IosCatMessage.RoomJoinOrLeave, payloadType)) {
           await Promise.all([
             this.onIosCatMessageRoomEventJoin(msg),
@@ -199,6 +198,9 @@ export class PuppetIoscat extends Puppet {
         } else if (equals(IosCatMessage.RoomTopic, payloadType)) {
           await this.onIoscatMessageRoomEventTopic(msg)
         } else {
+          /**
+           * 3. emit ordinary message event
+           */
           this.emit('message', msg.id)
         }
         return
@@ -214,42 +216,15 @@ export class PuppetIoscat extends Puppet {
       if (msg.type === 'ON_IM_RELATION_APPLY') {
         // save friendship request message for future usage
         msg = msg as IoscatFriendshipMessageRawPayload
+        log.silly(
+          'PuppetIoscat',
+          'initEventHook() receives a friend request message')
         msg.id = cuid()
         this.cacheIoscatFirendshipMessage.set(msg.id, msg)
         this.emit('friendship', msg.id)
         return
       }
     })
-  }
-
-  public async startWatchdog () {
-    log.verbose('PuppetIoscat', 'startWatchdog()')
-
-    if (!this.iosCatManager) {
-      throw new Error('no ioscat manager')
-    }
-
-    /**
-     * Use ioscat-event heartbeat to feed dog
-     */
-    IosCatEvent.on('heartbeat', (data: string) => {
-      log.silly('PuppetIoscat', 'startWatchdog() IosCatEvent.on(heartbeat)')
-      this.emit('watchdog', {
-        data,
-      })
-    })
-
-    IosCatEvent.on('broken', () => {
-      this.emit('error', new Error('Cant receive message event'))
-    })
-
-    this.emit('watchdog', {
-      data: 'inited',
-      type: 'startWatchdog()',
-    })
-
-    // send message `periodic_message`
-    await this.iosCatManager.checkOnline()
   }
 
   public async stop (): Promise<void> {
@@ -277,7 +252,6 @@ export class PuppetIoscat extends Puppet {
       clearInterval(this.iosCatManager.timer)
     }
 
-    this.iosCatManager.dog.unref()
     await this.logout()
     this.state.off(true)
   }
@@ -295,17 +269,6 @@ export class PuppetIoscat extends Puppet {
     // do the logout job --> release cache
     await this.iosCatManager.releaseCache()
   }
-
-  // public async syncContactsAndRoom () {
-  //   await new Promise(resolve => { setTimeout(resolve, 1000) })
-  //   // To be sure the user has logged
-  //   log.silly('PuppetIoscat', 'event: sync-contacts-and-room')
-  //   IosCatEvent.on('sync-contacts-and-room', () => {
-  //     this.iosCatManager.syncContactsAndRooms().catch(err => {
-  //       log.error('PuppetIoscat', 'syncContactsAndRoom(): %s', err)
-  //     })
-  //   })
-  // }
 
   /**
    *
@@ -362,7 +325,6 @@ export class PuppetIoscat extends Puppet {
   public async contactRawPayload (id: string): Promise<IosCatContactRawPayload> {
     log.verbose('PuppetIoscat', 'contactRawPayload(%s)', id)
     const rawPayload: IosCatContactRawPayload = await this.iosCatManager.contactRawPayload(id)
-    log.verbose('PuppetIoscat', 'rawPayload=%s', JSON.stringify(rawPayload))
     return rawPayload
   }
 
@@ -382,15 +344,15 @@ export class PuppetIoscat extends Puppet {
       contactType = ContactType.Official
     }
     const payload: ContactPayload = {
-      avatar : rawPayload.avatar,
-      city   : rawPayload.city,
+      avatar:    rawPayload.avatar,
+      city:      rawPayload.city,
       gender,
-      id        : rawPayload.platformUid,
-      name      : rawPayload.nickname,
-      province  : rawPayload.state,
-      signature : rawPayload.signature,
-      type      : contactType,
-      weixin    : rawPayload.customID
+      id:        rawPayload.platformUid,
+      name:      rawPayload.nickname,
+      province:  rawPayload.state,
+      signature: rawPayload.signature,
+      type:      contactType,
+      weixin:    rawPayload.customID
     }
     return payload
   }
@@ -407,8 +369,12 @@ export class PuppetIoscat extends Puppet {
       return payload
     } catch (e) {
       log.silly('PuppetIoscat', 'contactPayload(%s) exception: %s', contactId, e.message)
-      log.silly('PuppetIoscat', 'contactPayload(%s) get failed for %s',
-      'try load from room member data source', contactId)
+      log.silly(
+      'PuppetIoscat',
+      'contactPayload(%s) get failed for %s',
+      'try load from room member data source',
+      contactId
+      )
     }
 
     const rawPayload = await this.contactRawPayload(contactId)
@@ -432,11 +398,11 @@ export class PuppetIoscat extends Puppet {
         if (roomMemberPayload) {
 
           const payload: ContactPayload = {
-            avatar : roomMemberPayload.avatar,
-            gender : ContactGender.Unknown,
-            id     : roomMemberPayload.id,
-            name   : roomMemberPayload.name,
-            type   : ContactType.Personal,
+            avatar: roomMemberPayload.avatar,
+            gender: ContactGender.Unknown,
+            id:     roomMemberPayload.id,
+            name:   roomMemberPayload.name,
+            type:   ContactType.Personal,
           }
 
           this.cacheContactPayload.set(contactId, payload)
@@ -470,7 +436,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async messageRawPayloadParser (rawPayload: IoscatMessageRawPayload): Promise<MessagePayload> {
-    log.verbose('PuppetIoscat', 'messagePayload(%s)', JSON.stringify(rawPayload, null, 2))
+    log.verbose('PuppetIoscat', 'messagePayload(%s)', rawPayload.id)
     const payload = messageRawPayloadParser(rawPayload)
     return payload
   }
@@ -508,10 +474,12 @@ export class PuppetIoscat extends Puppet {
       receiver,
       messageId,
     )
-    log.verbose('PuppetPadchat', 'messageForward(%s, %s)',
-                              JSON.stringify(receiver),
-                              messageId,
-              )
+    log.verbose(
+      'PuppetPadchat',
+      'messageForward(%s, %s)',
+      JSON.stringify(receiver),
+      messageId,
+    )
 
     if (!this.iosCatManager) {
       throw new Error('no ioscat manager')
@@ -523,8 +491,9 @@ export class PuppetIoscat extends Puppet {
 
     const id = receiver.roomId || receiver.contactId
     if (!id) {
-      throw Error(`Can not find the receiver id for forwarding voice message
-      (${rawPayload.id}), forward voice message failed`)
+      throw Error(
+        `Can not find the receiver id for forwarding voice message(${rawPayload.id}),
+        forward voice message failed`)
     }
 
     if (payload.type === MessageType.Text) {
@@ -575,15 +544,15 @@ export class PuppetIoscat extends Puppet {
   public async roomRawPayloadParser (
     rawPayload: IosCatRoomRawPayload,
   ): Promise<RoomPayload> {
-    log.verbose('PuppetIoscat', 'roomRawPayloadParser(%s)', JSON.stringify(rawPayload, null, 2))
+    log.verbose('PuppetIoscat', 'roomRawPayloadParser(%s)', rawPayload.platformGid)
 
     // FIXME: should not use any
     const payload = {
-      avatar: rawPayload.avatar,
-      id: rawPayload.platformGid,
+      avatar:       rawPayload.avatar,
+      id:           rawPayload.platformGid,
       memberIdList: rawPayload.memberIdList,
-      ownerId: rawPayload.ownerPlatformUid,
-      topic: rawPayload.name,
+      ownerId:      rawPayload.ownerPlatformUid,
+      topic:        rawPayload.name,
     }
     return payload as any
   }
@@ -600,12 +569,10 @@ export class PuppetIoscat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'roomDel(%s, %s)', roomId, contactId)
     const requestBody: PBIMDeleteGroupMembersReq = {
-      customID: this.options.token || ioscatToken(),
-      memberCustomIDs: [
-        contactId
-      ],
-      platformGid: roomId,
-      serviceID: CONSTANT.serviceID,
+      customID:        this.options.token || ioscatToken(),
+      memberCustomIDs: [contactId],
+      platformGid:     roomId,
+      serviceID:       CONSTANT.serviceID,
     }
 
     const body = (await this.API.imApiDeleteGroupMembersPost(requestBody)).body
@@ -614,9 +581,9 @@ export class PuppetIoscat extends Puppet {
         this.roomMemberPayloadDirty(roomId),
         this.roomPayloadDirty(roomId)
       ])
-      log.info('PuppetIosCat', 'roomDel success')
+      log.verbose('PuppetIosCat', 'roomDel() success')
     } else {
-      log.info('PuppetIosCat', 'roomDel failed')
+      log.error('PuppetIosCat', 'roomDel() failed, %s', body.msg)
     }
   }
 
@@ -638,18 +605,16 @@ export class PuppetIoscat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetIoscat', 'roomAdd(%s, %s)', roomId, contactId)
     const requestBody: PBIMAddGroupMembersReq = {
-      customID: this.options.token || ioscatToken(),
-      memberCustomIDs: [
-        contactId
-      ],
-      platformGid: roomId,
-      serviceID: CONSTANT.serviceID
+      customID:        this.options.token || ioscatToken(),
+      memberCustomIDs: [contactId],
+      platformGid:     roomId,
+      serviceID:       CONSTANT.serviceID
     }
     const body = (await this.API.imApiAddGroupMembersPost(requestBody)).body
     if (body.code === 0) {
       log.info('PuppetIosCat', 'roomAdd success')
     } else {
-      log.info('PuppetIosCat', 'roomAdd failed')
+      log.error('PuppetIoscat', 'roomAdd(%s, %s) failed: %s', roomId, contactId, body.msg)
     }
   }
 
@@ -668,10 +633,10 @@ export class PuppetIoscat extends Puppet {
     }
     // change the topic to the value of topic argument
     const requestBody: PBIMSetGroupNameReq = {
-      customID: this.options.token || ioscatToken(),
-      groupName: topic,
+      customID:    this.options.token || ioscatToken(),
+      groupName:   topic,
       platformGid: roomId,
-      serviceID: CONSTANT.serviceID,
+      serviceID:   CONSTANT.serviceID,
     }
     const body = (await this.API.imApiSetGroupNamePost(requestBody)).body
     if (body.code === 0) {
@@ -689,10 +654,10 @@ export class PuppetIoscat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetIoscat', 'roomCreate(%s, %s)', JSON.stringify(contactIdList), topic)
     const requestBody: PBIMCreateGroupReq = {
-      customID: this.options.token || ioscatToken(),
-      groupName: topic,
+      customID:        this.options.token || ioscatToken(),
+      groupName:       topic,
       memberCustomIDs: contactIdList,
-      serviceID: CONSTANT.serviceID
+      serviceID:       CONSTANT.serviceID,
     }
     const body = (await this.API.imApiCreateGroupPost(requestBody)).body
     let platformGid: string = ''
@@ -716,6 +681,7 @@ export class PuppetIoscat extends Puppet {
     throw new Error('Server error')
   }
 
+  // TODO: Conform whether support
   public async roomQuit (roomId: string): Promise<void> {
     log.verbose('PuppetIoscat', 'roomQuit(%s)', roomId)
     throw new Error('not supported')
@@ -723,6 +689,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async roomQrcode (roomId: string): Promise<string> {
+    log.silly('PuppetIoscat', 'roomQrcode(%s)', roomId)
     if (!this.iosCatManager) {
       throw new Error('no ioscat manager')
     }
@@ -731,7 +698,7 @@ export class PuppetIoscat extends Puppet {
   }
 
   public async roomMemberList (roomId: string): Promise<string[]> {
-    log.verbose('PuppetIoscat', 'roommemberList(%s)', roomId)
+    log.silly('PuppetIoscat', 'roommemberList(%s)', roomId)
     if (!this.iosCatManager) {
       throw new Error('no padchat manager')
     }
@@ -757,13 +724,12 @@ export class PuppetIoscat extends Puppet {
 
   public async roomMemberRawPayloadParser (rawPayload: IosCatRoomMemberRawPayload): Promise<RoomMemberPayload> {
     log.verbose('PuppetIoscat', 'roomMemberRawPayloadParser(%s)', JSON.stringify(rawPayload))
-    // const contactPayload = await this.iosCatManager.roomRawPayload(rawPayload.platformUid)
     const contactPayload = await this.iosCatManager.roomRawPayload(rawPayload.platformGid)
     return {
-      avatar: contactPayload.avatar,
-      id: rawPayload.platformUid,
+      avatar:    contactPayload.avatar,
+      id:        rawPayload.platformUid,
       inviterId: rawPayload.source,
-      name: contactPayload.name,
+      name:      contactPayload.name,
       roomAlias: rawPayload.alias,
     }
   }
@@ -794,11 +760,12 @@ export class PuppetIoscat extends Puppet {
   public async roomAnnounce (roomId: string, text?: string): Promise<void | string> {
     const roomRawPayload = await this.iosCatManager.roomRawPayload(roomId)
     if (text) {
+      log.silly('PuppetIoscat', 'roomAnnounce(roomId: %s, text: %s)', roomId, text)
       const requestBody: PBIMSetGroupDescReq = {
-        customID: this.options.token || ioscatToken(),
-        groupDesc: text,
+        customID:    this.options.token || ioscatToken(),
+        groupDesc:   text,
         platformGid: roomId,
-        serviceID: CONSTANT.serviceID
+        serviceID:   CONSTANT.serviceID,
       }
       const body = (await this.API.imApiSetGroupDescPost(requestBody)).body
       if (body.code === 0) {
@@ -806,7 +773,7 @@ export class PuppetIoscat extends Puppet {
         return
       }
     }
-    log.verbose('roomAnnounce(roomId: %s)', roomId)
+    log.silly('PuppetIoscat', 'roomAnnounce(roomId: %s)', roomId)
     return roomRawPayload.signature || ''
   }
 
@@ -845,9 +812,9 @@ export class PuppetIoscat extends Puppet {
       throw new Error('platformUid not exist, perhaps this is an error message')
     }
     const requestBody: PBIMAddFriendReq = {
-      platformUid: messageRawPayload.payload.platformUid,
+      platformUid:     messageRawPayload.payload.platformUid,
       profileCustomID: this.options.token || ioscatToken(),
-      serviceID: CONSTANT.serviceID,
+      serviceID:       CONSTANT.serviceID,
     }
     const body = (await this.API.imApiAddFriendPost(requestBody)).body
     if (body.code === 0) {

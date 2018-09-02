@@ -146,6 +146,10 @@ export class PuppetIoscat extends Puppet {
     // const user = this.Contact.load(this.id)
     // emit contactId
     // TODO: 验证
+    /**
+     *  1. 确保在线
+     *  2. 手机没电,关机了,或者猫大王那边的接口当掉了怎么办
+     */
     this.emit('login', this.id)
     // FIXME: should do this after login
     // sync roomMember, contact and room
